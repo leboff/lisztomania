@@ -62,7 +62,7 @@ export default function ProfilesPage() {
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">{profile.name}</p>
               <p className="text-xs text-gray-400 capitalize">
-                {[profile.relationship, profile.age ? `Age ${profile.age}` : null]
+                {[profile.relationship, profile.age != null ? `Age ${profile.age}` : null]
                   .filter(Boolean)
                   .join(" · ")}
               </p>

@@ -9,13 +9,27 @@ interface Props {
   onCancel: () => void;
 }
 
+function calcAge(birthday: string): number | null {
+  if (!birthday) return null;
+  const today = new Date();
+  const dob = new Date(birthday);
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+  return age >= 0 ? age : null;
+}
+
+const maxDate = new Date().toISOString().split("T")[0];
+
 export function ProfileForm({ profile, onSave, onCancel }: Props) {
   const [name, setName] = useState(profile?.name ?? "");
-  const [age, setAge] = useState(profile?.age?.toString() ?? "");
+  const [birthday, setBirthday] = useState(profile?.birthday ?? "");
   const [gender, setGender] = useState<Profile["gender"]>(profile?.gender ?? null);
   const [relationship, setRelationship] = useState<Profile["relationship"]>(profile?.relationship ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const computedAge = calcAge(birthday);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +39,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
     try {
       const data = {
         name: name.trim(),
-        age: age ? parseInt(age) : null,
+        birthday: birthday || null,
         gender,
         relationship,
       };
@@ -57,15 +71,18 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Age</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Birthday
+          {computedAge !== null && (
+            <span className="ml-2 font-normal text-indigo-500">{computedAge} years old</span>
+          )}
+        </label>
         <input
-          type="number"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          min={0}
-          max={120}
+          type="date"
+          value={birthday}
+          onChange={(e) => setBirthday(e.target.value)}
+          max={maxDate}
           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-          placeholder="Optional"
         />
       </div>
 

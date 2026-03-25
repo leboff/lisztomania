@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.dependencies import get_current_user
-from app.schemas.profile import ProfileCreate, ProfileUpdate, ProfileResponse
+from app.schemas.profile import ProfileCreate, ProfileUpdate, ProfileResponse, _age_from_birthday
 from app.services.supabase_client import get_supabase
 from app.utils.exceptions import NotFoundError, ForbiddenError
 
@@ -18,6 +18,9 @@ async def list_profiles(current_user: dict = Depends(get_current_user)):
 async def create_profile(body: ProfileCreate, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
     data = body.model_dump() | {"user_id": current_user["id"]}
+    if data.get("birthday"):
+        data["age"] = _age_from_birthday(data["birthday"])
+        data["birthday"] = data["birthday"].isoformat()
     result = db.table("profiles").insert(data).execute()
     return result.data[0]
 
@@ -33,6 +36,9 @@ async def update_profile(
     if existing.data["user_id"] != current_user["id"]:
         raise ForbiddenError()
     update_data = body.model_dump(exclude_none=True)
+    if update_data.get("birthday"):
+        update_data["age"] = _age_from_birthday(update_data["birthday"])
+        update_data["birthday"] = update_data["birthday"].isoformat()
     result = db.table("profiles").update(update_data).eq("id", profile_id).execute()
     return result.data[0]
 

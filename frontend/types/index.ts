@@ -10,6 +10,7 @@ export interface Profile {
   id: string;
   user_id: string;
   name: string;
+  birthday: string | null;
   age: number | null;
   gender: "male" | "female" | "non_binary" | "prefer_not_to_say" | null;
   relationship: "self" | "partner" | "child" | "other" | null;

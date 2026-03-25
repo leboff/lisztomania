@@ -42,11 +42,15 @@ create table if not exists public.profiles (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references public.users(id) on delete cascade,
   name         text not null,
+  birthday     date,
   age          integer,
   gender       text check (gender in ('male','female','non_binary','prefer_not_to_say')),
   relationship text check (relationship in ('self','partner','child','other')),
   created_at   timestamptz not null default now()
 );
+
+-- Migration: add birthday column to existing deployments
+-- alter table public.profiles add column if not exists birthday date;
 create index if not exists profiles_user_id_idx on public.profiles(user_id);
 
 -- ─────────────────────────────────────────
