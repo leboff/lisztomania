@@ -5,8 +5,9 @@
       "name": "Frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "cwd": "/Users/leboff/projects/lisztomania/frontend",
-      "port": 3000
+      "cwd": "frontend",
+      "port": 3000,
+      "autoPort": true
     },
     {
       "name": "Backend",
