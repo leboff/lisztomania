@@ -119,11 +119,24 @@ def build_generation_prompt(
         type_match = tt == "any" or tt == trip_type
         return weather_match and type_match
 
-    matching_library = [item for item in library_items if item_matches(item)]
+    matching_library = [item for item in library_items if item.get("item_type", "packing") != "task" and item_matches(item)]
     if matching_library:
         lines.append("")
         lines.append("## Custom Items to Include (from user's personal library)")
         for item in matching_library:
+            profile_name = next(
+                (p["name"] for p in profiles if p["id"] == item.get("assigned_profile_id")), None
+            )
+            profile_str = f" [for {profile_name}]" if profile_name else ""
+            lines.append(f"- {item['name']}{profile_str}")
+
+    # Task templates from user's library
+    matching_tasks = [item for item in library_items if item.get("item_type") == "task" and item_matches(item)]
+    if matching_tasks:
+        lines.append("")
+        lines.append("## Pre-Trip Task Templates to Include (from user's personal library)")
+        lines.append("These MUST be included as 'Pre-Trip Task' category items:")
+        for item in matching_tasks:
             profile_name = next(
                 (p["name"] for p in profiles if p["id"] == item.get("assigned_profile_id")), None
             )
@@ -146,15 +159,16 @@ def build_generation_prompt(
         "## Instructions",
         "Return a JSON object with an 'items' array. Each item must have:",
         "- item_name: concise name (e.g. 'Passport', 'Running shoes')",
-        "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous]",
+        "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous, Pre-Trip Task]",
         "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
-        f"- suggested_bag_name: one of {bag_names} or null",
-        f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards).",
+        f"- suggested_bag_name: one of {bag_names} or null. For 'Pre-Trip Task' items, always use null.",
+        f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad').",
         "- quantity: integer or null — the count for ONE person (e.g. 7 socks, 5 underwear for a 7-day trip). Leave null for singular items like passport, charger, hat. Never sum quantities across travelers into one item.",
         "- reasoning: brief explanation (optional, for debugging)",
         "",
-        f"Generate {20 + 10 * (len(profile_names) - 1)}-{60 + 15 * (len(profile_names) - 1)} items appropriate for the trip. Include essentials plus context-specific items.",
-        "Always include all library items listed above.",
+        f"Generate {20 + 10 * (len(profile_names) - 1)}-{60 + 15 * (len(profile_names) - 1)} packing items appropriate for the trip. Include essentials plus context-specific items.",
+        "Additionally, generate 3-6 'Pre-Trip Task' items — practical tasks to complete BEFORE the trip (e.g. 'Charge iPads', 'Check in to flight', 'Download movies for offline viewing', 'Check passport validity', 'Book airport parking'). Adjust based on trip type: for international trips include entry/visa requirement checks; for flights include check-in and electronics charging. These must use category 'Pre-Trip Task' and suggested_bag_name null.",
+        "Always include all library packing items and task templates listed above.",
         "Return ONLY valid JSON, no markdown fences.",
     ])
 

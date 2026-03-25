@@ -9,7 +9,8 @@ import { ViewToggle } from "./ViewToggle";
 import { ProgressDashboard } from "./ProgressDashboard";
 import { ItemReassignSheet } from "./ItemReassignSheet";
 import { AddItemSheet } from "./AddItemSheet";
-import type { Bag, Profile, ChecklistItem, ChecklistView } from "@/types";
+import { useUIStore } from "@/store/uiStore";
+import type { Bag, Profile, ChecklistItem, ChecklistView as ViewType } from "@/types";
 
 interface Props {
   tripId: string;
@@ -19,7 +20,7 @@ interface Props {
 
 function groupItems(
   items: ChecklistItem[],
-  view: ChecklistView,
+  view: ViewType,
   bags: Bag[],
   profiles: Profile[]
 ): Array<{ key: string; title: string; items: ChecklistItem[] }> {
@@ -88,13 +89,24 @@ function groupItems(
 export function ChecklistView({ tripId, bags, profiles }: Props) {
   const { items, loading, setItems, refresh } = useTripChecklist(tripId);
   const { toggleItem, reassignItem, deleteItem } = useOptimisticChecklist({ items, setItems });
-  const progress = useChecklistProgress(items, bags, profiles);
+  
+  const { 
+    checklistView: view, 
+    setChecklistView: setView,
+    checklistTab: tab,
+    setChecklistTab: setTab
+  } = useUIStore();
 
-  const [view, setView] = useState<ChecklistView>("category");
   const [reassignItemId, setReassignItemId] = useState<string | null>(null);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
 
-  const sections = groupItems(items, view, bags, profiles);
+  const packingItems = items.filter(i => i.category !== "Pre-Trip Task");
+  const taskItems = items.filter(i => i.category === "Pre-Trip Task");
+  
+  const activeItems = tab === "packing" ? packingItems : taskItems;
+  const progress = useChecklistProgress(activeItems, bags, profiles);
+
+  const sections = groupItems(activeItems, view, bags, profiles);
   const reassignTarget = items.find((i) => i.id === reassignItemId);
 
   const handleAdd = async (data: Parameters<typeof checklistService.add>[1]) => {
@@ -114,8 +126,29 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
 
   return (
     <div>
+      <div className="bg-white px-4 pt-4 sticky top-0 z-40">
+        <div className="flex rounded-xl bg-gray-100 p-1">
+          <button
+            onClick={() => setTab("packing")}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+              tab === "packing" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Packing List
+          </button>
+          <button
+            onClick={() => setTab("tasks")}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+              tab === "tasks" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Pre-Trip Tasks
+          </button>
+        </div>
+      </div>
+
       <ProgressDashboard
-        items={items}
+        items={activeItems}
         bags={bags}
         profiles={profiles}
         globalPercent={progress.globalPercent}
@@ -123,7 +156,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
         byBag={progress.byBag}
       />
 
-      <ViewToggle value={view} onChange={setView} />
+      {tab === "packing" && <ViewToggle value={view} onChange={setView} />}
 
       <div className="pb-4">
         {sections.map((section) => (
@@ -178,6 +211,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
         bags={bags}
         profiles={profiles}
         onAdd={handleAdd}
+        defaultTab={tab}
       />
     </div>
   );

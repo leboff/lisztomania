@@ -9,6 +9,7 @@ import type { LibraryItem } from "@/types";
 export default function LibraryPage() {
   const { items, isLoading, mutate } = useLibrary();
   const [editing, setEditing] = useState<LibraryItem | null | "new">(null);
+  const [tab, setTab] = useState<"packing" | "task">("packing");
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this item?")) return;
@@ -19,19 +20,40 @@ export default function LibraryPage() {
   return (
     <div>
       <PageHeader
-        title="Item Library"
+        title="My Library"
         action={
           <button
             onClick={() => setEditing("new")}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500 text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm"
             aria-label="Add item"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </button>
         }
       />
+
+      <div className="px-4 pt-2">
+        <div className="flex rounded-xl bg-gray-100 p-1">
+          <button
+            onClick={() => setTab("packing")}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+              tab === "packing" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+             Packing Items
+          </button>
+          <button
+            onClick={() => setTab("task")}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+              tab === "task" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+             Task Templates
+          </button>
+        </div>
+      </div>
 
       <div className="px-4 py-4 space-y-2">
         {isLoading && (
@@ -56,30 +78,36 @@ export default function LibraryPage() {
           </div>
         )}
 
-        {items.map((item) => (
-          <div key={item.id} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3">
+        {items.filter(i => i.item_type === tab).map((item) => (
+          <div key={item.id} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900">{item.name}</p>
               <div className="mt-1 flex flex-wrap gap-1">
                 {item.always_pack && (
-                  <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-600">Always</span>
+                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+                    Always
+                  </span>
                 )}
-                {item.weather_tag && item.weather_tag !== "any" && (
-                  <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-600 capitalize">{item.weather_tag}</span>
+                {item.item_type === "packing" && item.weather_tag && item.weather_tag !== "any" && (
+                  <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-600">
+                    {item.weather_tag}
+                  </span>
                 )}
                 {item.trip_type_tag && item.trip_type_tag !== "any" && (
-                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-600 capitalize">{item.trip_type_tag}</span>
+                  <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-600">
+                    {item.trip_type_tag.replace("_", " ")}
+                  </span>
                 )}
               </div>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => setEditing(item)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100">
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <button onClick={() => setEditing(item)} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100">
+                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                 </svg>
               </button>
-              <button onClick={() => handleDelete(item.id)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-red-50">
-                <svg className="h-4 w-4 text-gray-300 hover:text-red-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <button onClick={() => handleDelete(item.id)} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-50 group">
+                <svg className="h-4 w-4 text-gray-300 group-hover:text-red-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -100,6 +128,7 @@ export default function LibraryPage() {
               item={editing === "new" ? undefined : editing}
               onSave={() => { mutate(); setEditing(null); }}
               onCancel={() => setEditing(null)}
+              defaultItemType={tab}
             />
           </div>
         </>

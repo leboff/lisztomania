@@ -26,8 +26,10 @@ export interface LibraryItem {
   weather_tag: string | null;
   trip_type_tag: string | null;
   always_pack: boolean;
+  item_type: "packing" | "task";
   created_at: string | null;
 }
+
 
 export type GenerationStatus = "pending" | "generating" | "complete" | "error";
 export type BagType = "checked" | "carry_on" | "personal_item";
