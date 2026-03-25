@@ -4,6 +4,8 @@ import { useTripChecklist } from "@/hooks/useTripChecklist";
 import { useOptimisticChecklist } from "@/hooks/useOptimisticChecklist";
 import { useChecklistProgress } from "@/hooks/useChecklistProgress";
 import { checklistService } from "@/services/checklist.service";
+import { libraryService } from "@/services/library.service";
+import { useLibrary } from "@/hooks/useLibrary";
 import { ChecklistSection } from "./ChecklistSection";
 import { ViewToggle } from "./ViewToggle";
 import { ProgressDashboard } from "./ProgressDashboard";
@@ -89,6 +91,7 @@ function groupItems(
 export function ChecklistView({ tripId, bags, profiles }: Props) {
   const { items, loading, setItems, refresh } = useTripChecklist(tripId);
   const { toggleItem, reassignItem, deleteItem } = useOptimisticChecklist({ items, setItems });
+  const { items: libraryItems, mutate: mutateLibrary } = useLibrary();
   
   const { 
     checklistView: view, 
@@ -112,6 +115,20 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
   const handleAdd = async (data: Parameters<typeof checklistService.add>[1]) => {
     await checklistService.add(tripId, data);
     await refresh();
+  };
+
+  const handleSaveToLibrary = async (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    await libraryService.create({
+      name: item.item_name,
+      item_type: item.category === "Pre-Trip Task" ? "task" : "packing",
+      weather_tag: "any",
+      trip_type_tag: "any",
+      always_pack: false,
+      assigned_profile_id: null,
+    });
+    mutateLibrary();
   };
 
   if (loading) {
@@ -169,6 +186,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
             onToggle={toggleItem}
             onDelete={deleteItem}
             onReassign={setReassignItemId}
+            onSaveToLibrary={handleSaveToLibrary}
           />
         ))}
 
@@ -210,6 +228,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
         onClose={() => setAddSheetOpen(false)}
         bags={bags}
         profiles={profiles}
+        libraryItems={libraryItems}
         onAdd={handleAdd}
         defaultTab={tab}
       />
