@@ -17,6 +17,7 @@ interface Props {
     category?: string;
     bag_id?: string;
     assigned_profile_id?: string;
+    quantity?: number;
   }) => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, onAdd }: Props) {
   const [category, setCategory] = useState("");
   const [bagId, setBagId] = useState("");
   const [profileId, setProfileId] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [saving, setSaving] = useState(false);
 
   if (!open) return null;
@@ -32,16 +34,19 @@ export function AddItemSheet({ open, onClose, bags, profiles, onAdd }: Props) {
   const handleAdd = async () => {
     if (!name.trim()) return;
     setSaving(true);
+    const qty = parseInt(quantity);
     await onAdd({
       item_name: name.trim(),
       category: category || undefined,
       bag_id: bagId || undefined,
       assigned_profile_id: profileId || undefined,
+      quantity: qty >= 1 ? qty : undefined,
     });
     setName("");
     setCategory("");
     setBagId("");
     setProfileId("");
+    setQuantity("");
     setSaving(false);
     onClose();
   };
@@ -55,14 +60,24 @@ export function AddItemSheet({ open, onClose, bags, profiles, onAdd }: Props) {
           <h3 className="mb-4 text-base font-semibold text-gray-900">Add item</h3>
 
           <div className="space-y-3">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Item name"
-              autoFocus
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Item name"
+                autoFocus
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="Qty"
+                min="1"
+                className="w-20 rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
 
             <select
               value={category}

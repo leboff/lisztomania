@@ -80,6 +80,7 @@ create table if not exists public.trips (
   start_date          date not null,
   end_date            date not null,
   trip_type           text,
+  trip_events         text[] not null default '{}',
   weather_summary     text,
   weather_data        jsonb,
   collaborator_ids    uuid[] not null default '{}',
@@ -129,6 +130,7 @@ create table if not exists public.checklist_items (
   was_unused          boolean not null default false,
   source              text not null default 'llm' check (source in ('llm','manual')),
   sort_order          integer,
+  quantity            integer,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
 );

@@ -1,7 +1,14 @@
 "use client";
+import { useState } from "react";
 import type { TripFormData } from "./TripWizard";
 
 const TRIP_TYPES = ["Work", "Beach", "Camping", "Family", "City", "Ski", "Road Trip", "Other"];
+
+const PRESET_EVENTS = [
+  "Date Night", "Hiking", "Golf", "Fishing", "Beach Day",
+  "Ski/Snowboard", "Water Sports", "Spa Day", "Wedding/Formal",
+  "Theme Park", "Camping", "City Tour",
+];
 
 interface Props {
   data: Partial<TripFormData>;
@@ -11,7 +18,24 @@ interface Props {
 }
 
 export function StepTripDetails({ data, onUpdate, onNext, onBack }: Props) {
+  const [customEvent, setCustomEvent] = useState("");
   const valid = data.destination && data.start_date && data.end_date && data.origin;
+
+  const selectedEvents = data.trip_events ?? [];
+
+  const toggleEvent = (event: string) => {
+    const updated = selectedEvents.includes(event)
+      ? selectedEvents.filter((e) => e !== event)
+      : [...selectedEvents, event];
+    onUpdate({ trip_events: updated });
+  };
+
+  const addCustomEvent = () => {
+    const trimmed = customEvent.trim();
+    if (!trimmed || selectedEvents.includes(trimmed)) return;
+    onUpdate({ trip_events: [...selectedEvents, trimmed] });
+    setCustomEvent("");
+  };
 
   return (
     <div className="flex flex-1 flex-col px-4 py-6">
@@ -92,6 +116,59 @@ export function StepTripDetails({ data, onUpdate, onNext, onBack }: Props) {
                 {type}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Activities &amp; events <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {PRESET_EVENTS.map((event) => (
+              <button
+                key={event}
+                onClick={() => toggleEvent(event)}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  selectedEvents.includes(event)
+                    ? "bg-indigo-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {event}
+              </button>
+            ))}
+          </div>
+          {selectedEvents.filter((e) => !PRESET_EVENTS.includes(e)).map((event) => (
+            <span
+              key={event}
+              className="inline-flex items-center gap-1 rounded-full bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white mr-2 mb-2"
+            >
+              {event}
+              <button
+                onClick={() => toggleEvent(event)}
+                className="ml-0.5 flex items-center justify-center w-4 h-4 rounded-full hover:bg-indigo-600"
+                aria-label={`Remove ${event}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <div className="flex gap-2 mt-1">
+            <input
+              type="text"
+              value={customEvent}
+              onChange={(e) => setCustomEvent(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addCustomEvent()}
+              placeholder="Add custom activity…"
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            />
+            <button
+              onClick={addCustomEvent}
+              disabled={!customEvent.trim()}
+              className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-40"
+            >
+              Add
+            </button>
           </div>
         </div>
       </div>

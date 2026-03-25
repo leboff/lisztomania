@@ -14,6 +14,7 @@ class ChecklistItemCreate(BaseModel):
     assigned_profile_id: str | None = None
     bag_id: str | None = None
     sort_order: int | None = None
+    quantity: int | None = None
 
 
 class ChecklistItemUpdate(BaseModel):
@@ -25,6 +26,7 @@ class ChecklistItemUpdate(BaseModel):
     is_checked: bool | None = None
     was_unused: bool | None = None
     sort_order: int | None = None
+    quantity: int | None = None
 
 
 class ChecklistItemResponse(BaseModel):
@@ -39,6 +41,7 @@ class ChecklistItemResponse(BaseModel):
     was_unused: bool
     source: str
     sort_order: int | None = None
+    quantity: int | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

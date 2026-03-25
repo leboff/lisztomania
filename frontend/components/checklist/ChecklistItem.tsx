@@ -78,6 +78,9 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
               item.is_checked ? "line-through text-gray-400" : ""
             }`}
           >
+            {item.quantity != null && (
+              <span className="text-gray-400 font-normal mr-1">{item.quantity}×</span>
+            )}
             {item.item_name}
           </p>
           {item.category && (

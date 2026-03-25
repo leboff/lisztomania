@@ -25,6 +25,11 @@ def build_generation_prompt(
         f"- Dates: {trip['start_date']} to {trip['end_date']} ({duration} days)",
         f"- Trip type: {trip.get('trip_type') or 'general'}",
         f"- Weather: {trip.get('weather_summary') or 'Unknown conditions'}",
+        *(
+            [f"- Planned events/activities: {', '.join(trip['trip_events'])}"]
+            if trip.get("trip_events")
+            else []
+        ),
         "",
         "## Travelers",
     ]
@@ -100,6 +105,7 @@ def build_generation_prompt(
         "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
         f"- suggested_bag_name: one of {bag_names} or null",
         f"- assigned_profile_name: one of {profile_names} or null (use null for shared items)",
+        "- quantity: integer or null — only set when count is meaningful (e.g. 5 for underwear, 6 for t-shirts, 7 for socks). Leave null for singular items like passport, charger, hat.",
         "- reasoning: brief explanation (optional, for debugging)",
         "",
         "Generate 20-60 items appropriate for the trip. Include essentials plus context-specific items.",

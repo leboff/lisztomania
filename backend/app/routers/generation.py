@@ -134,6 +134,7 @@ async def generate_trip_checklist(
                 "timing_attribute": item.timing_attribute,
                 "bag_id": bag_id,
                 "assigned_profile_id": profile_id,
+                "quantity": item.quantity,
                 "source": "llm",
                 "sort_order": i,
             })
