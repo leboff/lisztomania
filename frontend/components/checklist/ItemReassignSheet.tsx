@@ -24,8 +24,8 @@ export function ItemReassignSheet({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-white pb-safe">
+      <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white pb-safe">
         <div className="px-4 py-3">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
           <h3 className="mb-4 text-base font-semibold text-gray-900">Reassign item</h3>

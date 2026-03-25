@@ -6,12 +6,25 @@ from app.config import settings
 async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
     """Geocode a destination string using Open-Meteo geocoding API (no key required)."""
     async with httpx.AsyncClient(timeout=10.0) as client:
+        # 1. Try first with the full string
         resp = await client.get(
             "https://geocoding-api.open-meteo.com/v1/search",
             params={"name": destination, "count": 1, "language": "en", "format": "json"},
         )
         data = resp.json()
         results = data.get("results", [])
+
+        # 2. If no results and it has a comma (e.g. "Orlando, FL"), try part before comma
+        if not results and "," in destination:
+            city_only = destination.split(",")[0].strip()
+            if city_only != destination:
+                resp = await client.get(
+                    "https://geocoding-api.open-meteo.com/v1/search",
+                    params={"name": city_only, "count": 1, "language": "en", "format": "json"},
+                )
+                data = resp.json()
+                results = data.get("results", [])
+
         if not results:
             return None, None
         return results[0]["latitude"], results[0]["longitude"]

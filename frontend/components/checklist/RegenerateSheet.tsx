@@ -47,8 +47,8 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl bg-white pb-safe">
+      <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-[70] flex max-h-[85vh] flex-col rounded-t-2xl bg-white pb-safe">
         <div className="flex-1 overflow-y-auto px-4 py-3">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
           <h3 className="mb-4 text-base font-semibold text-gray-900">Regenerate list</h3>
