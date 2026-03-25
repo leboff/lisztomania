@@ -2,6 +2,7 @@ from pydantic import BaseModel, model_validator
 from datetime import datetime, date
 from typing import Literal
 
+from app.schemas.profile_bag import ProfileBagResponse
 
 GenderType = Literal["male", "female", "non_binary", "prefer_not_to_say"]
 RelationshipType = Literal["self", "partner", "child", "other"]
@@ -41,6 +42,7 @@ class ProfileResponse(BaseModel):
     gender: str | None = None
     relationship: str | None = None
     notes: str | None = None
+    bags: list[ProfileBagResponse] = []
     created_at: datetime | None = None
 
     @model_validator(mode="after")

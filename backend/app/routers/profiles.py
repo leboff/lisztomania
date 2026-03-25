@@ -10,7 +10,7 @@ router = APIRouter(prefix="/profiles", tags=["profiles"])
 @router.get("", response_model=list[ProfileResponse])
 async def list_profiles(current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    result = db.table("profiles").select("*").eq("user_id", current_user["id"]).order("created_at").execute()
+    result = db.table("profiles").select("*, profile_bags(*)").eq("user_id", current_user["id"]).order("created_at").execute()
     return result.data or []
 
 

@@ -16,6 +16,15 @@ export interface Profile {
   relationship: "self" | "partner" | "child" | "other" | null;
   notes: string | null;
   created_at: string | null;
+  bags?: ProfileBag[];
+}
+
+export interface ProfileBag {
+  id: string;
+  profile_id: string;
+  type: BagType;
+  size: string | null;
+  created_at: string | null;
 }
 
 export interface LibraryItem {

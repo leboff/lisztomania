@@ -26,6 +26,30 @@ export function StepBagConfiguration({ data, onUpdate, onNext, onBack }: Props) 
   const [newType, setNewType] = useState<Bag["type"]>("carry_on");
   const [newOwner, setNewOwner] = useState<string>("");
 
+  const suggestedBags = tripProfiles.flatMap(p => 
+    (p.bags || []).map(b => ({
+      ...b,
+      profileName: p.name
+    }))
+  );
+
+  const unimportedSuggestions = suggestedBags.filter(
+    s => !bags.some(b => b.owner_profile_id === s.profile_id && b.type === s.type)
+  );
+
+  const importSuggested = () => {
+    const newBags = unimportedSuggestions.map(s => {
+      const displayType = s.type === "carry_on" ? "carry-on" : s.type === "checked" ? "checked bag" : "personal item";
+      const name = s.size ? `${s.profileName}'s ${s.size} ${displayType}` : `${s.profileName}'s ${displayType}`;
+      return {
+        name,
+        type: s.type,
+        owner_profile_id: s.profile_id
+      };
+    });
+    onUpdate({ bags: [...bags, ...newBags] as Bag[] });
+  };
+
   const addBag = () => {
     if (!newName.trim()) return;
     const bag = {
@@ -53,6 +77,26 @@ export function StepBagConfiguration({ data, onUpdate, onNext, onBack }: Props) 
 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Configure bags</h2>
       <p className="mb-6 text-sm text-gray-400">Step 4 of 5 — Add the bags you&apos;re bringing</p>
+
+      {/* Import banner */}
+      {unimportedSuggestions.length > 0 && (
+        <div className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-indigo-900">Import default bags?</p>
+              <p className="mt-1 text-xs text-indigo-700">
+                Found {unimportedSuggestions.length} default bag{unimportedSuggestions.length === 1 ? '' : 's'} from travelers&apos; profiles.
+              </p>
+            </div>
+            <button
+              onClick={importSuggested}
+              className="rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600"
+            >
+              Import
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Existing bags */}
       <div className="mb-4 space-y-2">
