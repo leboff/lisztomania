@@ -26,6 +26,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
   const [birthday, setBirthday] = useState(profile?.birthday ?? "");
   const [gender, setGender] = useState<Profile["gender"]>(profile?.gender ?? null);
   const [relationship, setRelationship] = useState<Profile["relationship"]>(profile?.relationship ?? null);
+  const [notes, setNotes] = useState(profile?.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,6 +43,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
         birthday: birthday || null,
         gender,
         relationship,
+        notes: notes.trim() || null,
       };
       if (profile) {
         await profilesService.update(profile.id, data);
@@ -120,6 +122,17 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none"
+          placeholder="e.g. potty trained, doesn't need a stroller, allergic to peanuts…"
+        />
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}

@@ -46,11 +46,14 @@ create table if not exists public.profiles (
   age          integer,
   gender       text check (gender in ('male','female','non_binary','prefer_not_to_say')),
   relationship text check (relationship in ('self','partner','child','other')),
+  notes        text,
   created_at   timestamptz not null default now()
 );
 
 -- Migration: add birthday column to existing deployments
 -- alter table public.profiles add column if not exists birthday date;
+-- Migration: add notes column to existing deployments
+-- alter table public.profiles add column if not exists notes text;
 create index if not exists profiles_user_id_idx on public.profiles(user_id);
 
 -- ─────────────────────────────────────────

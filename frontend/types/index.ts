@@ -14,6 +14,7 @@ export interface Profile {
   age: number | null;
   gender: "male" | "female" | "non_binary" | "prefer_not_to_say" | null;
   relationship: "self" | "partner" | "child" | "other" | null;
+  notes: string | null;
   created_at: string | null;
 }
 

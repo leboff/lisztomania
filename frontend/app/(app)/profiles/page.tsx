@@ -59,13 +59,16 @@ export default function ProfilesPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
               {profile.name[0].toUpperCase()}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900">{profile.name}</p>
               <p className="text-xs text-gray-400 capitalize">
                 {[profile.relationship, profile.age != null ? `Age ${profile.age}` : null]
                   .filter(Boolean)
                   .join(" · ")}
               </p>
+              {profile.notes && (
+                <p className="mt-0.5 text-xs text-gray-400 truncate normal-case">{profile.notes}</p>
+              )}
             </div>
             <div className="flex gap-1">
               <button

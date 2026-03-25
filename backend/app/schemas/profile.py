@@ -20,6 +20,7 @@ class ProfileCreate(BaseModel):
     age: int | None = None
     gender: GenderType | None = None
     relationship: RelationshipType | None = None
+    notes: str | None = None
 
 
 class ProfileUpdate(BaseModel):
@@ -28,6 +29,7 @@ class ProfileUpdate(BaseModel):
     age: int | None = None
     gender: GenderType | None = None
     relationship: RelationshipType | None = None
+    notes: str | None = None
 
 
 class ProfileResponse(BaseModel):
@@ -38,6 +40,7 @@ class ProfileResponse(BaseModel):
     age: int | None = None
     gender: str | None = None
     relationship: str | None = None
+    notes: str | None = None
     created_at: datetime | None = None
 
     @model_validator(mode="after")
