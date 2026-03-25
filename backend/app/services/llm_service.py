@@ -40,6 +40,7 @@ async def generate_checklist(prompt: str) -> LLMGenerationResponse:
                         },
                         "suggested_bag_name": {"type": ["string", "null"]},
                         "assigned_profile_name": {"type": ["string", "null"]},
+                        "quantity": {"type": ["integer", "null"]},
                         "reasoning": {"type": ["string", "null"]},
                     },
                     "required": ["item_name", "category", "timing_attribute"],
