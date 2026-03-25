@@ -22,6 +22,19 @@ async def fetch_weather(destination: str, start_date: date, end_date: date) -> d
         )
         geo_data = geo_resp.json()
         if not geo_data:
+            # Reformat "City, ST" → "City,ST,US" for OpenWeatherMap compatibility
+            normalized = destination.replace(", ", ",")
+            parts = normalized.split(",")
+            if len(parts) == 2:
+                normalized = f"{normalized},US"
+            if normalized != destination:
+                geo_resp2 = await client.get(
+                    "https://api.openweathermap.org/geo/1.0/direct",
+                    params={"q": normalized, "limit": 1, "appid": settings.weather_api_key},
+                )
+                geo_data = geo_resp2.json()
+
+        if not geo_data:
             return {
                 "summary": f"Could not find weather data for {destination}.",
                 "data": {},
