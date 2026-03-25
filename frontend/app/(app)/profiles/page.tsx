@@ -91,8 +91,8 @@ export default function ProfilesPage() {
         {/* Inline form sheet */}
         {editing && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/30" onClick={() => setEditing(null)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-white px-4 pb-8 pt-4">
+            <div className="fixed inset-0 z-[55] bg-black/30" onClick={() => setEditing(null)} />
+            <div className="fixed bottom-0 left-0 right-0 z-[60] max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-8 pt-4">
               <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
               <h3 className="mb-4 text-base font-semibold text-gray-900">
                 {editing === "new" ? "New traveler" : "Edit traveler"}
