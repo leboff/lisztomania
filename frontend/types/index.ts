@@ -82,6 +82,7 @@ export interface Trip {
   weather_summary: string | null;
   weather_data: Record<string, unknown> | null;
   collaborator_ids: string[];
+  collaborators?: { id: string; email: string; name?: string }[];
   template_trip_id: string | null;
   generation_status: GenerationStatus;
   hindsight_completed: boolean;

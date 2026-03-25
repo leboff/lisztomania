@@ -61,6 +61,7 @@ class TripResponse(BaseModel):
     weather_summary: str | None = None
     weather_data: dict | None = None
     collaborator_ids: list[str] = []
+    collaborators: list[dict] = []
     template_trip_id: str | None = None
     generation_status: str
     hindsight_completed: bool

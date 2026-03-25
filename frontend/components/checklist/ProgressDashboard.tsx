@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import type { Bag, Profile, ChecklistItem } from "@/types";
 
@@ -14,6 +15,7 @@ interface Props {
 export function ProgressDashboard({ items, bags, profiles, globalPercent, byProfile, byBag }: Props) {
   const total = items.length;
   const checked = items.filter((i) => i.is_checked).length;
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <div className="sticky top-14 z-30 bg-white border-b border-gray-100 px-4 py-3 no-print">
@@ -28,29 +30,42 @@ export function ProgressDashboard({ items, bags, profiles, globalPercent, byProf
         <span className="text-xs font-semibold text-gray-500 shrink-0">
           {checked}/{total}
         </span>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+          aria-label={expanded ? "Collapse progress rings" : "Expand progress rings"}
+        >
+          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            {expanded
+              ? <polyline points="5 13 10 8 15 13" />
+              : <polyline points="5 8 10 13 15 8" />}
+          </svg>
+        </button>
       </div>
 
       {/* Rings row */}
-      <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
-        {byProfile.map(({ profile, percent, checked: c, total: t }) => (
-          <ProgressRing
-            key={profile.id}
-            percent={percent}
-            label={profile.name}
-            sublabel={`${c}/${t}`}
-            size={52}
-          />
-        ))}
-        {byBag.map(({ bag, percent, checked: c, total: t }) => (
-          <ProgressRing
-            key={bag.id}
-            percent={percent}
-            label={bag.name}
-            sublabel={`${c}/${t}`}
-            size={52}
-          />
-        ))}
-      </div>
+      {expanded && (
+        <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+          {byProfile.map(({ profile, percent, checked: c, total: t }) => (
+            <ProgressRing
+              key={profile.id}
+              percent={percent}
+              label={profile.name}
+              sublabel={`${c}/${t}`}
+              size={52}
+            />
+          ))}
+          {byBag.map(({ bag, percent, checked: c, total: t }) => (
+            <ProgressRing
+              key={bag.id}
+              percent={percent}
+              label={bag.name}
+              sublabel={`${c}/${t}`}
+              size={52}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

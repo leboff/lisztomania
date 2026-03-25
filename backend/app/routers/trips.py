@@ -15,6 +15,12 @@ def _check_trip_access(trip: dict, user_id: str) -> None:
 def _enrich_trip(trip: dict, db) -> dict:
     tp = db.table("trip_profiles").select("profile_id").eq("trip_id", trip["id"]).execute()
     trip["profile_ids"] = [r["profile_id"] for r in (tp.data or [])]
+    collab_ids = trip.get("collaborator_ids") or []
+    if collab_ids:
+        users = db.table("users").select("id,email,name").in_("id", collab_ids).execute()
+        trip["collaborators"] = users.data or []
+    else:
+        trip["collaborators"] = []
     return trip
 
 
