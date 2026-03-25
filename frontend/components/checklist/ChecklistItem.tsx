@@ -9,10 +9,12 @@ interface Props {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onReassign: (id: string) => void;
+  onSaveToLibrary?: (id: string) => void;
 }
 
-export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReassign }: Props) {
+export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReassign, onSaveToLibrary }: Props) {
   const [swipeX, setSwipeX] = useState(0);
+  const [saved, setSaved] = useState(false);
   const startX = useRef(0);
   const bag = bags.find((b) => b.id === item.bag_id);
   const profile = profiles.find((p) => p.id === item.assigned_profile_id);
@@ -87,6 +89,29 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
             <p className="text-xs text-gray-400 mt-0.5">{item.category}</p>
           )}
         </div>
+
+        {/* Save to library */}
+        {onSaveToLibrary && (
+          <button
+            onClick={() => {
+              onSaveToLibrary(item.id);
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2000);
+            }}
+            className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+            aria-label="Save to library"
+          >
+            {saved ? (
+              <svg className="h-4 w-4 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+            )}
+          </button>
+        )}
 
         {/* Bag / profile badge — tap to reassign */}
         {(bag || profile) && (
