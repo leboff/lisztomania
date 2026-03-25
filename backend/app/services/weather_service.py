@@ -3,6 +3,16 @@ from datetime import date
 from app.config import settings
 
 
+def _normalize_destination(destination: str) -> str:
+    """Normalize destination for OpenWeatherMap Geo API (no spaces around commas, append US for city+state)."""
+    parts = [part.strip() for part in destination.split(",")]
+    normalized = ",".join(parts)
+    # Append US country code if destination is "City, ST" format (2-letter state abbreviation)
+    if len(parts) == 2 and len(parts[1]) == 2 and parts[1].isalpha():
+        normalized += ",US"
+    return normalized
+
+
 async def fetch_weather(destination: str, start_date: date, end_date: date) -> dict:
     """
     Fetch 5-day weather forecast from OpenWeatherMap for the destination.
@@ -18,10 +28,10 @@ async def fetch_weather(destination: str, start_date: date, end_date: date) -> d
         # First geocode the city
         geo_resp = await client.get(
             "https://api.openweathermap.org/geo/1.0/direct",
-            params={"q": destination, "limit": 1, "appid": settings.weather_api_key},
+            params={"q": _normalize_destination(destination), "limit": 1, "appid": settings.weather_api_key},
         )
         geo_data = geo_resp.json()
-        if not geo_data:
+        if not isinstance(geo_data, list) or not geo_data:
             return {
                 "summary": f"Could not find weather data for {destination}.",
                 "data": {},
