@@ -16,6 +16,12 @@ export const tripsService = {
     accommodation_id?: string | null;
     accommodation_type?: AccommodationType | null;
     sleeping_rooms?: SleepingRoom[];
+    origin_city?: string | null;
+    origin_state?: string | null;
+    origin_country?: string | null;
+    destination_city?: string | null;
+    destination_state?: string | null;
+    destination_country?: string | null;
   }) => apiClient.post<Trip>("/trips", body),
   update: (tripId: string, body: Partial<Trip>) =>
     apiClient.patch<Trip>(`/trips/${tripId}`, body),

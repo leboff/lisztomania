@@ -3,7 +3,7 @@ from datetime import date
 from app.dependencies import get_current_user
 from app.schemas.generation import GenerationResponse
 from app.services.supabase_client import get_supabase
-from app.services.weather_service import fetch_weather
+from app.services.weather_service import fetch_weather, search_locations
 from app.services.prompt_builder import build_generation_prompt
 from app.services.llm_service import generate_checklist
 from app.utils.exceptions import NotFoundError, ForbiddenError
@@ -16,6 +16,8 @@ async def get_weather(
     destination: str,
     start_date: str,
     end_date: str,
+    lat: float | None = None,
+    lon: float | None = None,
     current_user: dict = Depends(get_current_user),
 ):
     try:
@@ -23,8 +25,16 @@ async def get_weather(
         ed = date.fromisoformat(end_date)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-    result = await fetch_weather(destination, sd, ed)
+    result = await fetch_weather(destination, sd, ed, lat, lon)
     return result
+
+
+@router.get("/weather/search")
+async def search_weather_locations(
+    query: str,
+    current_user: dict = Depends(get_current_user),
+):
+    return await search_locations(query)
 
 
 @router.post("/trips/{trip_id}/generate", response_model=GenerationResponse)

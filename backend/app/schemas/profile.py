@@ -1,6 +1,6 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 from datetime import datetime, date
-from typing import Literal
+from typing import Any, Literal
 
 from app.schemas.profile_bag import ProfileBagResponse
 
@@ -44,6 +44,13 @@ class ProfileResponse(BaseModel):
     notes: str | None = None
     bags: list[ProfileBagResponse] = []
     created_at: datetime | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def map_supabase_fields(cls, data: dict[str, Any]) -> dict[str, Any]:
+        if "profile_bags" in data:
+            data["bags"] = data.pop("profile_bags")
+        return data
 
     @model_validator(mode="after")
     def compute_age_from_birthday(self):

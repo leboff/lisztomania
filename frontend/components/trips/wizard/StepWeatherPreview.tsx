@@ -15,21 +15,49 @@ interface Props {
 export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Props) {
   const [fetching, setFetching] = useState(false);
   const [weatherError, setWeatherError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(data.destination || "");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const fetchWeatherForLocation = (dest: string, lat?: number, lon?: number) => {
+    if (!data.start_date || !data.end_date) return;
+    setFetching(true);
+    setWeatherError("");
+    checklistService
+      .getWeather(dest, data.start_date, data.end_date, lat, lon)
+      .then((result) => {
+        onUpdate({ 
+          weather_summary: result.summary, 
+          weather_data: result.data,
+          destination: dest // Update destination name if it was refined
+        });
+        setIsEditing(false);
+      })
+      .catch(() => {
+        setWeatherError("Could not fetch weather for this location.");
+      })
+      .finally(() => setFetching(false));
+  };
 
   useEffect(() => {
     if (data.destination && data.start_date && data.end_date && !data.weather_summary) {
-      setFetching(true);
-      checklistService
-        .getWeather(data.destination, data.start_date, data.end_date)
-        .then((result) => {
-          onUpdate({ weather_summary: result.summary, weather_data: result.data });
-        })
-        .catch(() => {
-          setWeatherError("Could not fetch weather. You can still continue.");
-        })
-        .finally(() => setFetching(false));
+      fetchWeatherForLocation(data.destination);
     }
   }, []);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    try {
+      const results = await checklistService.searchLocations(searchQuery);
+      setSearchResults(results);
+    } catch {
+      setWeatherError("Search failed.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <div className="flex flex-1 flex-col px-4 py-6">
@@ -40,45 +68,118 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
         Back
       </button>
 
-      <h2 className="mb-1 text-2xl font-bold text-gray-900">Weather preview</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 5 of 5 — We&apos;ll use this to tailor your list</p>
-
-      <div className="rounded-2xl overflow-hidden">
-        <div className="px-0 pb-0 pt-0">
-          <p className="text-sm font-medium text-gray-500 mb-1">{data.destination}</p>
-          <p className="text-sm font-medium text-gray-500 mb-3">
-            {data.start_date} – {data.end_date}
-          </p>
-        </div>
-
-        {fetching && (
-          <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-            <span className="text-sm text-gray-500">Fetching forecast…</span>
-          </div>
-        )}
-
-        {!fetching && data.weather_data && (
-          <WeatherForecast
-            weatherData={data.weather_data as Record<string, unknown>}
-            weatherSummary={data.weather_summary}
-            compact
-          />
-        )}
-
-        {!fetching && !data.weather_data && data.weather_summary && (
-          <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
-            <p className="text-base text-gray-800 leading-relaxed">{data.weather_summary}</p>
-          </div>
-        )}
-
-        {!fetching && weatherError && (
-          <p className="text-sm text-amber-600 mt-2">{weatherError}</p>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-2xl font-bold text-gray-900">Weather preview</h2>
+        {!isEditing && (
+          <button 
+            onClick={() => {
+              setIsEditing(true);
+              setSearchQuery(data.destination || "");
+            }}
+            className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            Edit location
+          </button>
         )}
       </div>
+      <p className="mb-6 text-sm text-gray-400">Step 5 of 5 — We&apos;ll use this to tailor your list</p>
+
+      {isEditing ? (
+        <div className="mb-6 space-y-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Search city..."
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            />
+            <button
+              onClick={handleSearch}
+              disabled={isSearching}
+              className="rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40"
+            >
+              Search
+            </button>
+          </div>
+
+          <div className="max-h-48 overflow-y-auto space-y-1">
+            {isSearching && (
+              <div className="py-4 text-center text-xs text-gray-400">Searching...</div>
+            )}
+            {!isSearching && searchResults.map((loc, i) => (
+              <button
+                key={i}
+                onClick={() => fetchWeatherForLocation(loc.name, loc.latitude, loc.longitude)}
+                className="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+              >
+                <span className="font-medium text-gray-900">{loc.name}</span>
+                <span className="ml-2 text-xs text-gray-400">
+                  {loc.admin1 ? `${loc.admin1}, ` : ""}{loc.country}
+                </span>
+                <span className="ml-2 text-[10px] text-gray-300">
+                  {loc.latitude.toFixed(2)}, {loc.longitude.toFixed(2)}
+                </span>
+              </button>
+            ))}
+            {!isSearching && searchQuery && searchResults.length === 0 && (
+               <div className="py-4 text-center text-xs text-gray-400 font-medium italic">No matches found. Try a simpler name.</div>
+            )}
+          </div>
+          <button 
+             onClick={() => setIsEditing(false)}
+             className="w-full text-center text-xs text-gray-400 py-1 hover:text-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-2xl overflow-hidden mb-6">
+          <div className="px-0 pb-0 pt-0">
+            <p className="text-sm font-medium text-gray-500 mb-1">{data.destination}</p>
+            <p className="text-sm font-medium text-gray-500 mb-3">
+              {data.start_date} – {data.end_date}
+            </p>
+          </div>
+
+          {fetching && (
+            <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+              <span className="text-sm text-gray-500">Fetching forecast…</span>
+            </div>
+          )}
+
+          {!fetching && data.weather_data && (
+            <WeatherForecast
+              weatherData={data.weather_data as Record<string, unknown>}
+              weatherSummary={data.weather_summary}
+              compact
+            />
+          )}
+
+          {!fetching && !data.weather_data && data.weather_summary && (
+            <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
+              <p className="text-base text-gray-800 leading-relaxed">{data.weather_summary}</p>
+            </div>
+          )}
+
+          {!fetching && weatherError && (
+            <div>
+              <p className="text-sm text-amber-600 mt-2">{weatherError}</p>
+              <button 
+                onClick={() => fetchWeatherForLocation(data.destination!)}
+                className="mt-2 text-xs font-semibold text-indigo-600 underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Trip summary */}
-      <div className="mt-4 rounded-xl bg-gray-50 p-4 space-y-1">
+      <div className="mt-4 rounded-xl bg-gray-50 p-4 space-y-1 mb-6">
         <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Summary</p>
         <p className="text-sm text-gray-700">
           <span className="font-medium">{data.destination}</span> · {data.trip_type || "trip"}
@@ -89,13 +190,13 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
       </div>
 
       {error && (
-        <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-600">{error}</div>
+        <div className="mb-4 rounded-xl bg-red-50 p-4 text-sm text-red-600">{error}</div>
       )}
 
-      <div className="mt-auto pt-6">
+      <div className="mt-auto">
         <button
           onClick={onNext}
-          disabled={fetching}
+          disabled={fetching || isEditing}
           className="w-full rounded-xl bg-indigo-500 py-4 text-sm font-semibold text-white hover:bg-indigo-600 disabled:opacity-40"
         >
           Generate my packing list ✨

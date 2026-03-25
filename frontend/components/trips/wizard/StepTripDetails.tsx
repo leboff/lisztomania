@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import type { TripFormData } from "./TripWizard";
+import { LocationInput } from "./LocationInput";
 
 const TRIP_TYPES = ["Work", "Beach", "Camping", "Family", "City", "Ski", "Road Trip", "Other"];
 
@@ -50,26 +51,28 @@ export function StepTripDetails({ data, onUpdate, onNext, onBack }: Props) {
       <p className="mb-6 text-sm text-gray-400">Step 1 of 5</p>
 
       <div className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">From</label>
-          <input
-            type="text"
-            value={data.origin ?? ""}
-            onChange={(e) => onUpdate({ origin: e.target.value })}
-            placeholder="New York, NY"
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">To</label>
-          <input
-            type="text"
-            value={data.destination ?? ""}
-            onChange={(e) => onUpdate({ destination: e.target.value })}
-            placeholder="Miami, FL"
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-          />
-        </div>
+        <LocationInput
+          label="From"
+          value={data.origin ?? ""}
+          onChange={(val, details) => onUpdate({ 
+            origin: val,
+            origin_city: details?.city,
+            origin_state: details?.state,
+            origin_country: details?.country
+          })}
+          placeholder="New York, NY"
+        />
+        <LocationInput
+          label="To"
+          value={data.destination ?? ""}
+          onChange={(val, details) => onUpdate({ 
+            destination: val,
+            destination_city: details?.city,
+            destination_state: details?.state,
+            destination_country: details?.country
+          })}
+          placeholder="Miami, FL"
+        />
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">Depart</label>

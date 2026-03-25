@@ -22,8 +22,15 @@ export const checklistService = {
     apiClient.post(`/trips/${tripId}/hindsight`, { unused_item_ids: unusedItemIds }),
   generate: (tripId: string, opts?: { refreshWeather?: boolean }) =>
     apiClient.post(`/trips/${tripId}/generate${opts?.refreshWeather ? '?refresh_weather=true' : ''}`),
-  getWeather: (destination: string, startDate: string, endDate: string) =>
-    apiClient.get<{ summary: string; data: Record<string, unknown> }>(
-      `/weather?destination=${encodeURIComponent(destination)}&start_date=${startDate}&end_date=${endDate}`
+  getWeather: (destination: string, startDate: string, endDate: string, lat?: number, lon?: number) => {
+    let url = `/weather?destination=${encodeURIComponent(destination)}&start_date=${startDate}&end_date=${endDate}`;
+    if (lat !== undefined && lon !== undefined) {
+      url += `&lat=${lat}&lon=${lon}`;
+    }
+    return apiClient.get<{ summary: string; data: Record<string, unknown> }>(url);
+  },
+  searchLocations: (query: string) =>
+    apiClient.get<Array<{ name: string; latitude: number; longitude: number; country: string; admin1?: string }>>(
+      `/weather/search?query=${encodeURIComponent(query)}`
     ),
 };

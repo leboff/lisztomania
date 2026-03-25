@@ -3,6 +3,17 @@ from datetime import date, datetime, timezone
 from app.config import settings
 
 
+async def search_locations(query: str) -> list[dict]:
+    """Search for locations using Open-Meteo geocoding API."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(
+            "https://geocoding-api.open-meteo.com/v1/search",
+            params={"name": query, "count": 10, "language": "en", "format": "json"},
+        )
+        data = resp.json()
+        return data.get("results", [])
+
+
 async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
     """Geocode a destination string using Open-Meteo geocoding API (no key required)."""
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -16,11 +27,23 @@ async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
 
         # 2. If no results and it has a comma (e.g. "Orlando, FL"), try part before comma
         if not results and "," in destination:
-            city_only = destination.split(",")[0].strip()
-            if city_only != destination:
+            city_candidate = destination.split(",")[0].strip()
+            if city_candidate and city_candidate != destination:
                 resp = await client.get(
                     "https://geocoding-api.open-meteo.com/v1/search",
-                    params={"name": city_only, "count": 1, "language": "en", "format": "json"},
+                    params={"name": city_candidate, "count": 1, "language": "en", "format": "json"},
+                )
+                data = resp.json()
+                results = data.get("results", [])
+
+        # 3. If still no results, try removing the last word (e.g. "Orlando FL" -> "Orlando")
+        if not results and " " in destination:
+            parts = destination.split()
+            if len(parts) > 1:
+                city_candidate = " ".join(parts[:-1])
+                resp = await client.get(
+                    "https://geocoding-api.open-meteo.com/v1/search",
+                    params={"name": city_candidate, "count": 1, "language": "en", "format": "json"},
                 )
                 data = resp.json()
                 results = data.get("results", [])
@@ -45,7 +68,13 @@ _ICON_SUMMARY: dict[str, str] = {
 }
 
 
-async def fetch_weather(destination: str, start_date: date, end_date: date) -> dict:
+async def fetch_weather(
+    destination: str, 
+    start_date: date, 
+    end_date: date, 
+    lat: float | None = None, 
+    lon: float | None = None
+) -> dict:
     """
     Fetch forecast from Pirate Weather for the destination.
     Returns a dict with:
@@ -58,7 +87,9 @@ async def fetch_weather(destination: str, start_date: date, end_date: date) -> d
             "data": {},
         }
 
-    lat, lon = await _geocode(destination)
+    if lat is None or lon is None:
+        lat, lon = await _geocode(destination)
+
     if lat is None:
         return {
             "summary": f"Could not find weather data for {destination}.",

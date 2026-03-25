@@ -9,6 +9,7 @@ import { WeatherForecast } from "@/components/checklist/WeatherForecast";
 import { checklistService } from "@/services/checklist.service";
 import { tripsService } from "@/services/trips.service";
 import { apiClient } from "@/lib/api/client";
+import { ManageBagsSheet } from "@/components/checklist/ManageBagsSheet";
 import useSWR from "swr";
 import type { Bag } from "@/types";
 import Link from "next/link";
@@ -17,11 +18,12 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   const { tripId } = use(params);
   const { trip, isLoading, mutate } = useTrip(tripId);
   const { profiles } = useProfiles();
-  const { data: bags } = useSWR<Bag[]>(
+  const { data: bags, mutate: mutateBags } = useSWR<Bag[]>(
     tripId ? `/trips/${tripId}/bags` : null,
     () => apiClient.get<Bag[]>(`/trips/${tripId}/bags`)
   );
   const [regenerateOpen, setRegenerateOpen] = useState(false);
+  const [manageBagsOpen, setManageBagsOpen] = useState(false);
 
   // Poll while generating
   useEffect(() => {
@@ -91,15 +93,26 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
               </Link>
             )}
             {canRegenerate && (
-              <button
-                onClick={() => setRegenerateOpen(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
-                aria-label="Regenerate list"
-              >
-                <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
-              </button>
+              <>
+                <button
+                  onClick={() => setManageBagsOpen(true)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                  aria-label="Manage bags"
+                >
+                  <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setRegenerateOpen(true)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                  aria-label="Regenerate list"
+                >
+                  <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                </button>
+              </>
             )}
             <button
               onClick={() => window.print()}
@@ -158,12 +171,24 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
       )}
 
       {trip && (
-        <RegenerateSheet
-          open={regenerateOpen}
-          onClose={() => setRegenerateOpen(false)}
-          trip={trip}
-          onRegenerate={handleRegenerate}
-        />
+        <>
+          <RegenerateSheet
+            open={regenerateOpen}
+            onClose={() => setRegenerateOpen(false)}
+            trip={trip}
+            onRegenerate={handleRegenerate}
+          />
+          <ManageBagsSheet
+            open={manageBagsOpen}
+            onClose={() => setManageBagsOpen(false)}
+            tripId={trip.id}
+            currentBags={bags ?? []}
+            profiles={tripProfiles}
+            onRefresh={async () => {
+              await mutateBags();
+            }}
+          />
+        </>
       )}
     </div>
   );

@@ -78,22 +78,35 @@ export function StepBagConfiguration({ data, onUpdate, onNext, onBack }: Props) 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Configure bags</h2>
       <p className="mb-6 text-sm text-gray-400">Step 4 of 5 — Add the bags you&apos;re bringing</p>
 
-      {/* Import banner */}
+      {/* Individual Bag Suggestions */}
       {unimportedSuggestions.length > 0 && (
-        <div className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-indigo-900">Import default bags?</p>
-              <p className="mt-1 text-xs text-indigo-700">
-                Found {unimportedSuggestions.length} default bag{unimportedSuggestions.length === 1 ? '' : 's'} from travelers&apos; profiles.
-              </p>
-            </div>
-            <button
-              onClick={importSuggested}
-              className="rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600"
-            >
-              Import
-            </button>
+        <div className="mb-6">
+          <p className="mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Suggested from profiles</p>
+          <div className="flex flex-wrap gap-2">
+            {unimportedSuggestions.map((s, idx) => {
+              const displayType = s.type === "carry_on" ? "carry-on" : s.type === "checked" ? "checked" : "personal item";
+              const name = s.size ? `${s.profileName}'s ${s.size} ${displayType}` : `${s.profileName}'s ${displayType}`;
+              return (
+                <button
+                  key={`suggested-${idx}`}
+                  onClick={() => {
+                    onUpdate({ 
+                      bags: [...bags, {
+                        name,
+                        type: s.type,
+                        owner_profile_id: s.profile_id
+                      }] 
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-100"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  {name}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

@@ -90,6 +90,12 @@ export interface Trip {
   accommodation_id: string | null;
   accommodation_type: AccommodationType | null;
   sleeping_rooms: SleepingRoom[] | null;
+  origin_city: string | null;
+  origin_state: string | null;
+  origin_country: string | null;
+  destination_city: string | null;
+  destination_state: string | null;
+  destination_country: string | null;
 }
 
 export interface Bag {

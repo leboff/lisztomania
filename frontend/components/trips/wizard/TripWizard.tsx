@@ -27,6 +27,12 @@ export interface TripFormData {
   accommodation_id: string | null;
   accommodation_type: AccommodationType | null;
   sleeping_rooms: SleepingRoom[];
+  origin_city: string | null;
+  origin_state: string | null;
+  origin_country: string | null;
+  destination_city: string | null;
+  destination_state: string | null;
+  destination_country: string | null;
 }
 
 const TOTAL_STEPS = 6;
@@ -68,6 +74,12 @@ export function TripWizard() {
         accommodation_id: data.accommodation_id ?? null,
         accommodation_type: data.accommodation_type ?? null,
         sleeping_rooms: data.sleeping_rooms ?? [],
+        origin_city: data.origin_city,
+        origin_state: data.origin_state,
+        origin_country: data.origin_country,
+        destination_city: data.destination_city,
+        destination_state: data.destination_state,
+        destination_country: data.destination_country,
       });
 
       // Store weather on trip

@@ -19,6 +19,12 @@ class TripCreate(BaseModel):
     accommodation_id: str | None = None
     accommodation_type: str | None = None
     sleeping_rooms: list[dict] = []
+    origin_city: str | None = None
+    origin_state: str | None = None
+    origin_country: str | None = None
+    destination_city: str | None = None
+    destination_state: str | None = None
+    destination_country: str | None = None
 
 
 class TripUpdate(BaseModel):
@@ -34,6 +40,12 @@ class TripUpdate(BaseModel):
     accommodation_id: str | None = None
     accommodation_type: str | None = None
     sleeping_rooms: list[dict] | None = None
+    origin_city: str | None = None
+    origin_state: str | None = None
+    origin_country: str | None = None
+    destination_city: str | None = None
+    destination_state: str | None = None
+    destination_country: str | None = None
 
 
 class TripResponse(BaseModel):
@@ -57,6 +69,12 @@ class TripResponse(BaseModel):
     accommodation_id: str | None = None
     accommodation_type: str | None = None
     sleeping_rooms: list[dict] | None = None
+    origin_city: str | None = None
+    origin_state: str | None = None
+    origin_country: str | None = None
+    destination_city: str | None = None
+    destination_state: str | None = None
+    destination_country: str | None = None
 
 
 class CollaboratorInvite(BaseModel):
