@@ -8,6 +8,7 @@ class LLMChecklistItem(BaseModel):
     timing_attribute: Literal["pack_in_advance", "morning_of", "buy_at_destination", "other"]
     suggested_bag_name: str | None = None
     assigned_profile_name: str | None = None
+    quantity: int | None = None
     reasoning: str | None = None
 
 

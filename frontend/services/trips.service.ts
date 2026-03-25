@@ -11,6 +11,7 @@ export const tripsService = {
     start_date: string;
     end_date: string;
     trip_type?: string;
+    trip_events?: string[];
     profile_ids?: string[];
   }) => apiClient.post<Trip>("/trips", body),
   update: (tripId: string, body: Partial<Trip>) =>

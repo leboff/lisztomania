@@ -13,6 +13,7 @@ class TripCreate(BaseModel):
     start_date: date
     end_date: date
     trip_type: str | None = None
+    trip_events: list[str] = []
     profile_ids: list[str] = []
     template_trip_id: str | None = None
 
@@ -24,6 +25,7 @@ class TripUpdate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     trip_type: str | None = None
+    trip_events: list[str] | None = None
     weather_summary: str | None = None
     weather_data: dict | None = None
 
@@ -37,6 +39,7 @@ class TripResponse(BaseModel):
     start_date: date
     end_date: date
     trip_type: str | None = None
+    trip_events: list[str] = []
     weather_summary: str | None = None
     weather_data: dict | None = None
     collaborator_ids: list[str] = []

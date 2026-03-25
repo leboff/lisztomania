@@ -18,6 +18,7 @@ export interface TripFormData {
   start_date: string;
   end_date: string;
   trip_type: string;
+  trip_events: string[];
   profile_ids: string[];
   bags: Array<{ name: string; type: Bag["type"]; owner_profile_id: string | null }>;
   weather_summary: string;
@@ -32,6 +33,7 @@ export function TripWizard() {
   const [data, setData] = useState<Partial<TripFormData>>({
     profile_ids: [],
     bags: [],
+    trip_events: [],
   });
   const [tripId, setTripId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -54,6 +56,7 @@ export function TripWizard() {
         start_date: data.start_date!,
         end_date: data.end_date!,
         trip_type: data.trip_type,
+        trip_events: data.trip_events ?? [],
         profile_ids: data.profile_ids ?? [],
       });
 

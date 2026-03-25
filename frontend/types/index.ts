@@ -41,6 +41,7 @@ export interface Trip {
   start_date: string;
   end_date: string;
   trip_type: string | null;
+  trip_events: string[];
   weather_summary: string | null;
   weather_data: Record<string, unknown> | null;
   collaborator_ids: string[];
@@ -72,6 +73,7 @@ export interface ChecklistItem {
   was_unused: boolean;
   source: "llm" | "manual";
   sort_order: number | null;
+  quantity: number | null;
   created_at: string | null;
   updated_at: string | null;
 }

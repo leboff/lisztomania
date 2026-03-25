@@ -12,6 +12,7 @@ export const checklistService = {
       timing_attribute?: string;
       assigned_profile_id?: string;
       bag_id?: string;
+      quantity?: number;
     }
   ) => apiClient.post<ChecklistItem>(`/trips/${tripId}/checklist`, body),
   update: (itemId: string, body: Partial<ChecklistItem>) =>
