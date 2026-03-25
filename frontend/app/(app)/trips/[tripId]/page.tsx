@@ -1,9 +1,12 @@
 "use client";
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import { useTrip } from "@/hooks/useTrips";
 import { useProfiles } from "@/hooks/useProfiles";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ChecklistView } from "@/components/checklist/ChecklistView";
+import { RegenerateSheet } from "@/components/checklist/RegenerateSheet";
+import { checklistService } from "@/services/checklist.service";
+import { tripsService } from "@/services/trips.service";
 import { apiClient } from "@/lib/api/client";
 import useSWR from "swr";
 import type { Bag } from "@/types";
@@ -11,14 +14,45 @@ import Link from "next/link";
 
 export default function TripChecklistPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params);
-  const { trip, isLoading } = useTrip(tripId);
+  const { trip, isLoading, mutate } = useTrip(tripId);
   const { profiles } = useProfiles();
   const { data: bags } = useSWR<Bag[]>(
     tripId ? `/trips/${tripId}/bags` : null,
     () => apiClient.get<Bag[]>(`/trips/${tripId}/bags`)
   );
+  const [regenerateOpen, setRegenerateOpen] = useState(false);
+
+  // Poll while generating
+  useEffect(() => {
+    if (trip?.generation_status !== "generating") return;
+    const interval = setInterval(() => mutate(), 3000);
+    return () => clearInterval(interval);
+  }, [trip?.generation_status, mutate]);
 
   const tripProfiles = profiles.filter((p) => trip?.profile_ids?.includes(p.id) ?? false);
+
+  const handleRegenerate = async (opts: { trip_events: string[]; refreshWeather: boolean }) => {
+    if (!trip) return;
+    setRegenerateOpen(false);
+
+    // Update trip events if changed
+    const eventsChanged =
+      JSON.stringify(opts.trip_events.slice().sort()) !==
+      JSON.stringify((trip.trip_events ?? []).slice().sort());
+    if (eventsChanged) {
+      await tripsService.update(tripId, { trip_events: opts.trip_events });
+    }
+
+    // Optimistically show generating state
+    mutate({ ...trip, generation_status: "generating" }, false);
+
+    try {
+      await checklistService.generate(tripId, { refreshWeather: opts.refreshWeather });
+      mutate();
+    } catch {
+      mutate();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -38,6 +72,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   const today = new Date().toISOString().split("T")[0];
   const isPast = trip.end_date < today;
   const needsReview = isPast && !trip.hindsight_completed && trip.generation_status === "complete";
+  const canRegenerate = trip.generation_status === "complete" || trip.generation_status === "error";
 
   return (
     <div>
@@ -53,6 +88,17 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
               >
                 Review trip
               </Link>
+            )}
+            {canRegenerate && (
+              <button
+                onClick={() => setRegenerateOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                aria-label="Regenerate list"
+              >
+                <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+              </button>
             )}
             <button
               onClick={() => window.print()}
@@ -73,13 +119,19 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" />
             <span className="text-sm font-medium text-yellow-700">Generating your list…</span>
           </div>
-          <p className="text-xs text-yellow-600">This may take a moment. Refresh to check.</p>
+          <p className="text-xs text-yellow-600">This may take a moment.</p>
         </div>
       )}
 
       {trip.generation_status === "error" && (
-        <div className="mx-4 mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-600">
-          Generation failed. Please try again from the trip settings.
+        <div className="mx-4 mt-4 rounded-xl bg-red-50 p-4 text-center">
+          <p className="text-sm text-red-600 mb-2">Generation failed.</p>
+          <button
+            onClick={() => setRegenerateOpen(true)}
+            className="text-sm font-medium text-red-700 underline"
+          >
+            Try again
+          </button>
         </div>
       )}
 
@@ -95,6 +147,15 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
         <div className="flex flex-col items-center py-12 px-4 text-center">
           <p className="text-gray-500 text-sm">Your list hasn&apos;t been generated yet.</p>
         </div>
+      )}
+
+      {trip && (
+        <RegenerateSheet
+          open={regenerateOpen}
+          onClose={() => setRegenerateOpen(false)}
+          trip={trip}
+          onRegenerate={handleRegenerate}
+        />
       )}
     </div>
   );
