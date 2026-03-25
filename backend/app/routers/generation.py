@@ -29,7 +29,9 @@ async def get_weather(
 
 @router.post("/trips/{trip_id}/generate", response_model=GenerationResponse)
 async def generate_trip_checklist(
-    trip_id: str, current_user: dict = Depends(get_current_user)
+    trip_id: str,
+    refresh_weather: bool = False,
+    current_user: dict = Depends(get_current_user),
 ):
     db = get_supabase()
     user_id = current_user["id"]
@@ -88,6 +90,12 @@ async def generate_trip_checklist(
                 .execute()
             )
             hindsight_exclusions = list({r["item_name"] for r in (unused_result.data or [])})[:20]
+
+        # Clear weather if refresh requested
+        if refresh_weather:
+            db.table("trips").update({"weather_summary": None, "weather_data": None}).eq("id", trip_id).execute()
+            trip["weather_summary"] = None
+            trip["weather_data"] = None
 
         # Fetch weather if not already stored
         if not trip.get("weather_summary"):

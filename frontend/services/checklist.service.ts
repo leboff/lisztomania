@@ -20,8 +20,8 @@ export const checklistService = {
   delete: (itemId: string) => apiClient.delete(`/checklist/${itemId}`),
   submitHindsight: (tripId: string, unusedItemIds: string[]) =>
     apiClient.post(`/trips/${tripId}/hindsight`, { unused_item_ids: unusedItemIds }),
-  generate: (tripId: string) =>
-    apiClient.post(`/trips/${tripId}/generate`),
+  generate: (tripId: string, opts?: { refreshWeather?: boolean }) =>
+    apiClient.post(`/trips/${tripId}/generate${opts?.refreshWeather ? '?refresh_weather=true' : ''}`),
   getWeather: (destination: string, startDate: string, endDate: string) =>
     apiClient.get<{ summary: string; data: Record<string, unknown> }>(
       `/weather?destination=${encodeURIComponent(destination)}&start_date=${startDate}&end_date=${endDate}`
