@@ -15,7 +15,7 @@ interface Props {
 export function ProgressDashboard({ items, bags, profiles, globalPercent, byProfile, byBag }: Props) {
   const total = items.length;
   const checked = items.filter((i) => i.is_checked).length;
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="sticky top-14 z-30 bg-white border-b border-gray-100 px-4 py-3 no-print">
