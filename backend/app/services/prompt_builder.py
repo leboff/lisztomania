@@ -45,6 +45,50 @@ def build_generation_prompt(
         lines.append("- 1 adult traveler")
 
     lines.append("")
+
+    # Accommodation section
+    accommodation_type = trip.get("accommodation_type")
+    sleeping_rooms = trip.get("sleeping_rooms") or []
+
+    if accommodation_type or sleeping_rooms:
+        lines.append("## Accommodation")
+        labels = {
+            "hotel": "Hotel",
+            "vacation_rental": "Vacation rental",
+            "camping": "Camping",
+            "friends_family": "Staying with friends/family",
+            "other": "Other",
+        }
+        if accommodation_type:
+            lines.append(f"- Type: {labels.get(accommodation_type, accommodation_type)}")
+
+        if accommodation_type == "camping":
+            lines.append(
+                "- Camping: suggest full outdoor sleep setup for everyone "
+                "(sleeping bags, tent, sleeping pads, etc.)"
+            )
+        elif sleeping_rooms:
+            profile_lookup = {p["id"]: p for p in profiles}
+            for room in sleeping_rooms:
+                occupants = []
+                for pid in room.get("profile_ids", []):
+                    p = profile_lookup.get(pid)
+                    if p:
+                        age_str = f", age {p['age']}" if p.get("age") else ""
+                        rel_str = p.get("relationship", "")
+                        occupants.append(
+                            f"{p['name']} ({rel_str}{age_str})" if rel_str else f"{p['name']}{age_str}"
+                        )
+                if occupants:
+                    room_name = room.get("name", "Room")
+                    lines.append(f"- {room_name}: {', '.join(occupants)}")
+            lines.append(
+                "- For shared-room items (white noise machine, slumberpod, nightlight), "
+                "suggest ONE per room containing a child — not one per traveler. "
+                "For personal sleep items (sleep mask, pillowcase), suggest one per person."
+            )
+        lines.append("")
+
     lines.append("## Bags Available")
     if bags:
         for b in bags:

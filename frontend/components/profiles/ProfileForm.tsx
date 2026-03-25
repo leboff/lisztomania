@@ -41,6 +41,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
       const data = {
         name: name.trim(),
         birthday: birthday || null,
+        age: computedAge,
         gender,
         relationship,
         notes: notes.trim() || null,

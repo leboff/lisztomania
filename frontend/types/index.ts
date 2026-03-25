@@ -32,6 +32,31 @@ export interface LibraryItem {
 export type GenerationStatus = "pending" | "generating" | "complete" | "error";
 export type BagType = "checked" | "carry_on" | "personal_item";
 export type TimingAttribute = "pack_in_advance" | "morning_of" | "buy_at_destination" | "other";
+export type AccommodationType =
+  | "hotel"
+  | "vacation_rental"
+  | "camping"
+  | "friends_family"
+  | "other";
+
+export interface AccommodationRoom {
+  name: string;
+}
+
+export interface Accommodation {
+  id: string;
+  user_id: string;
+  name: string;
+  accommodation_type: AccommodationType | null;
+  rooms: AccommodationRoom[];
+  notes: string | null;
+  created_at: string | null;
+}
+
+export interface SleepingRoom {
+  name: string;
+  profile_ids: string[];
+}
 
 export interface Trip {
   id: string;
@@ -51,6 +76,9 @@ export interface Trip {
   hindsight_completed: boolean;
   created_at: string | null;
   profile_ids: string[];
+  accommodation_id: string | null;
+  accommodation_type: AccommodationType | null;
+  sleeping_rooms: SleepingRoom[] | null;
 }
 
 export interface Bag {

@@ -47,7 +47,7 @@ export function StepTripDetails({ data, onUpdate, onNext, onBack }: Props) {
       </button>
 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Where are you going?</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 1 of 4</p>
+      <p className="mb-6 text-sm text-gray-400">Step 1 of 5</p>
 
       <div className="space-y-4">
         <div>

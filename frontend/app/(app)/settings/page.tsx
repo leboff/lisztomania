@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api/client";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import type { User } from "@/types";
 
@@ -68,6 +69,19 @@ export default function SettingsPage() {
             {saved ? "Saved!" : saving ? "Saving…" : "Save changes"}
           </button>
         </form>
+
+        <div className="border-t border-gray-100 pt-4">
+          <p className="mb-3 text-xs text-gray-400 uppercase tracking-wide font-medium">My Library</p>
+          <Link
+            href="/accommodations"
+            className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm font-medium text-gray-700"
+          >
+            <span>Saved Places</span>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </Link>
+        </div>
 
         <div className="border-t border-gray-100 pt-4">
           <p className="mb-3 text-xs text-gray-400 uppercase tracking-wide font-medium">Account</p>

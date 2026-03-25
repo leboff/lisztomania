@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import users, profiles, library, trips, bags, checklist, generation
+from app.routers import users, profiles, library, trips, bags, checklist, generation, accommodations
 
 app = FastAPI(
     title="Lisztomania API",
@@ -26,6 +26,7 @@ app.include_router(trips.router, prefix=API_PREFIX)
 app.include_router(bags.router, prefix=API_PREFIX)
 app.include_router(checklist.router, prefix=API_PREFIX)
 app.include_router(generation.router, prefix=API_PREFIX)
+app.include_router(accommodations.router, prefix=API_PREFIX)
 
 
 @app.get("/health")

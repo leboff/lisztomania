@@ -40,7 +40,7 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
       </button>
 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Weather preview</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 4 of 4 — We&apos;ll use this to tailor your list</p>
+      <p className="mb-6 text-sm text-gray-400">Step 5 of 5 — We&apos;ll use this to tailor your list</p>
 
       <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
         <p className="text-sm font-medium text-gray-500 mb-1">{data.destination}</p>

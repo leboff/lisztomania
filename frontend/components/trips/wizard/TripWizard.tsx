@@ -6,10 +6,11 @@ import { StepTravelerSelect } from "./StepTravelerSelect";
 import { StepBagConfiguration } from "./StepBagConfiguration";
 import { StepWeatherPreview } from "./StepWeatherPreview";
 import { StepGenerating } from "./StepGenerating";
+import { StepAccommodation } from "./StepAccommodation";
 import { tripsService } from "@/services/trips.service";
 import { checklistService } from "@/services/checklist.service";
 import { apiClient } from "@/lib/api/client";
-import type { Bag } from "@/types";
+import type { Bag, AccommodationType, SleepingRoom } from "@/types";
 
 export interface TripFormData {
   name: string;
@@ -23,9 +24,12 @@ export interface TripFormData {
   bags: Array<{ name: string; type: Bag["type"]; owner_profile_id: string | null }>;
   weather_summary: string;
   weather_data: Record<string, unknown>;
+  accommodation_id: string | null;
+  accommodation_type: AccommodationType | null;
+  sleeping_rooms: SleepingRoom[];
 }
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 export function TripWizard() {
   const router = useRouter();
@@ -34,6 +38,9 @@ export function TripWizard() {
     profile_ids: [],
     bags: [],
     trip_events: [],
+    accommodation_id: null,
+    accommodation_type: null,
+    sleeping_rooms: [],
   });
   const [tripId, setTripId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -45,7 +52,7 @@ export function TripWizard() {
   const back = () => setStep((s) => s - 1);
 
   const handleGenerate = async () => {
-    setStep(5);
+    setStep(6);
     setError("");
     try {
       // Create trip
@@ -58,6 +65,9 @@ export function TripWizard() {
         trip_type: data.trip_type,
         trip_events: data.trip_events ?? [],
         profile_ids: data.profile_ids ?? [],
+        accommodation_id: data.accommodation_id ?? null,
+        accommodation_type: data.accommodation_type ?? null,
+        sleeping_rooms: data.sleeping_rooms ?? [],
       });
 
       // Store weather on trip
@@ -81,14 +91,14 @@ export function TripWizard() {
       router.push(`/trips/${trip.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
-      setStep(4);
+      setStep(5);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col">
       {/* Progress bar */}
-      {step < 5 && (
+      {step < 6 && (
         <div className="h-1 bg-gray-100">
           <div
             className="h-1 bg-indigo-500 transition-all duration-300"
@@ -114,7 +124,7 @@ export function TripWizard() {
         />
       )}
       {step === 3 && (
-        <StepBagConfiguration
+        <StepAccommodation
           data={data}
           onUpdate={updateData}
           onNext={next}
@@ -122,6 +132,14 @@ export function TripWizard() {
         />
       )}
       {step === 4 && (
+        <StepBagConfiguration
+          data={data}
+          onUpdate={updateData}
+          onNext={next}
+          onBack={back}
+        />
+      )}
+      {step === 5 && (
         <StepWeatherPreview
           data={data}
           onUpdate={updateData}
@@ -130,7 +148,7 @@ export function TripWizard() {
           error={error}
         />
       )}
-      {step === 5 && <StepGenerating tripId={tripId} />}
+      {step === 6 && <StepGenerating tripId={tripId} />}
     </div>
   );
 }

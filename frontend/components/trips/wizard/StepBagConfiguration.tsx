@@ -52,7 +52,7 @@ export function StepBagConfiguration({ data, onUpdate, onNext, onBack }: Props) 
       </button>
 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Configure bags</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 3 of 4 — Add the bags you&apos;re bringing</p>
+      <p className="mb-6 text-sm text-gray-400">Step 4 of 5 — Add the bags you&apos;re bringing</p>
 
       {/* Existing bags */}
       <div className="mb-4 space-y-2">

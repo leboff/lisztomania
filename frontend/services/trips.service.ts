@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import type { Trip } from "@/types";
+import type { Trip, AccommodationType, SleepingRoom } from "@/types";
 
 export const tripsService = {
   list: () => apiClient.get<Trip[]>("/trips"),
@@ -13,6 +13,9 @@ export const tripsService = {
     trip_type?: string;
     trip_events?: string[];
     profile_ids?: string[];
+    accommodation_id?: string | null;
+    accommodation_type?: AccommodationType | null;
+    sleeping_rooms?: SleepingRoom[];
   }) => apiClient.post<Trip>("/trips", body),
   update: (tripId: string, body: Partial<Trip>) =>
     apiClient.patch<Trip>(`/trips/${tripId}`, body),

@@ -29,7 +29,7 @@ export function StepTravelerSelect({ data, onUpdate, onNext, onBack }: Props) {
       </button>
 
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Who&apos;s traveling?</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 2 of 4</p>
+      <p className="mb-6 text-sm text-gray-400">Step 2 of 5</p>
 
       {isLoading && <div className="h-16 rounded-xl bg-gray-100 animate-pulse" />}
 
