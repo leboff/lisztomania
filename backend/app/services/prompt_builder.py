@@ -39,7 +39,8 @@ def build_generation_prompt(
             age_str = f", age {p['age']}" if p.get("age") else ""
             rel_str = f" ({p.get('relationship', '')})" if p.get("relationship") else ""
             gender_str = f", {p.get('gender', '')}" if p.get("gender") else ""
-            lines.append(f"- {p['name']}{rel_str}{age_str}{gender_str}")
+            notes_str = f" — notes: {p['notes']}" if p.get("notes") else ""
+            lines.append(f"- {p['name']}{rel_str}{age_str}{gender_str}{notes_str}")
     else:
         lines.append("- 1 adult traveler")
 
