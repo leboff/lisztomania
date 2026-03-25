@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Literal
 
 
 class LibraryItemCreate(BaseModel):
@@ -8,6 +9,7 @@ class LibraryItemCreate(BaseModel):
     weather_tag: str | None = None
     trip_type_tag: str | None = None
     always_pack: bool = False
+    item_type: Literal["packing", "task"] = "packing"
 
 
 class LibraryItemUpdate(BaseModel):
@@ -16,6 +18,7 @@ class LibraryItemUpdate(BaseModel):
     weather_tag: str | None = None
     trip_type_tag: str | None = None
     always_pack: bool | None = None
+    item_type: Literal["packing", "task"] | None = None
 
 
 class LibraryItemResponse(BaseModel):
@@ -26,4 +29,5 @@ class LibraryItemResponse(BaseModel):
     weather_tag: str | None = None
     trip_type_tag: str | None = None
     always_pack: bool
+    item_type: Literal["packing", "task"] = "packing"
     created_at: datetime | None = None

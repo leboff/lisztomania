@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Bag, Profile } from "@/types";
 
 const CATEGORIES = [
   "Clothing", "Toiletries", "Electronics", "Documents",
   "Health", "Kids", "Food & Snacks", "Entertainment", "Miscellaneous",
+  "Pre-Trip Task",
 ];
 
 interface Props {
@@ -19,15 +20,23 @@ interface Props {
     assigned_profile_id?: string;
     quantity?: number;
   }) => Promise<void>;
+  defaultTab?: "packing" | "tasks";
 }
 
-export function AddItemSheet({ open, onClose, bags, profiles, onAdd }: Props) {
+export function AddItemSheet({ open, onClose, bags, profiles, onAdd, defaultTab }: Props) {
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(defaultTab === "tasks" ? "Pre-Trip Task" : "");
   const [bagId, setBagId] = useState("");
   const [profileId, setProfileId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Sync category if defaultTab changes when opening
+  useEffect(() => {
+    if (open) {
+      setCategory(defaultTab === "tasks" ? "Pre-Trip Task" : "");
+    }
+  }, [open, defaultTab]);
 
   if (!open) return null;
 
@@ -90,7 +99,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, onAdd }: Props) {
               ))}
             </select>
 
-            {bags.length > 0 && (
+            {bags.length > 0 && category !== "Pre-Trip Task" && (
               <select
                 value={bagId}
                 onChange={(e) => setBagId(e.target.value)}
