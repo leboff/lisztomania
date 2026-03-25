@@ -5,6 +5,7 @@ import { useProfiles } from "@/hooks/useProfiles";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ChecklistView } from "@/components/checklist/ChecklistView";
 import { RegenerateSheet } from "@/components/checklist/RegenerateSheet";
+import { WeatherForecast } from "@/components/checklist/WeatherForecast";
 import { checklistService } from "@/services/checklist.service";
 import { tripsService } from "@/services/trips.service";
 import { apiClient } from "@/lib/api/client";
@@ -112,6 +113,13 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
           </div>
         }
       />
+
+      {trip.weather_data && (
+        <WeatherForecast
+          weatherData={trip.weather_data}
+          weatherSummary={trip.weather_summary}
+        />
+      )}
 
       {trip.generation_status === "generating" && (
         <div className="mx-4 mt-4 rounded-xl bg-yellow-50 p-4 text-center">

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { checklistService } from "@/services/checklist.service";
+import { WeatherForecast } from "@/components/checklist/WeatherForecast";
 import type { TripFormData } from "./TripWizard";
 
 interface Props {
@@ -42,25 +43,37 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
       <h2 className="mb-1 text-2xl font-bold text-gray-900">Weather preview</h2>
       <p className="mb-6 text-sm text-gray-400">Step 5 of 5 — We&apos;ll use this to tailor your list</p>
 
-      <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
-        <p className="text-sm font-medium text-gray-500 mb-1">{data.destination}</p>
-        <p className="text-sm font-medium text-gray-500 mb-3">
-          {data.start_date} – {data.end_date}
-        </p>
+      <div className="rounded-2xl overflow-hidden">
+        <div className="px-0 pb-0 pt-0">
+          <p className="text-sm font-medium text-gray-500 mb-1">{data.destination}</p>
+          <p className="text-sm font-medium text-gray-500 mb-3">
+            {data.start_date} – {data.end_date}
+          </p>
+        </div>
 
         {fetching && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
             <span className="text-sm text-gray-500">Fetching forecast…</span>
           </div>
         )}
 
-        {!fetching && data.weather_summary && (
-          <p className="text-base text-gray-800 leading-relaxed">{data.weather_summary}</p>
+        {!fetching && data.weather_data && (
+          <WeatherForecast
+            weatherData={data.weather_data as Record<string, unknown>}
+            weatherSummary={data.weather_summary}
+            compact
+          />
+        )}
+
+        {!fetching && !data.weather_data && data.weather_summary && (
+          <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-5">
+            <p className="text-base text-gray-800 leading-relaxed">{data.weather_summary}</p>
+          </div>
         )}
 
         {!fetching && weatherError && (
-          <p className="text-sm text-amber-600">{weatherError}</p>
+          <p className="text-sm text-amber-600 mt-2">{weatherError}</p>
         )}
       </div>
 
