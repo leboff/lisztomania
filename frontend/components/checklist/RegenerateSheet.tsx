@@ -48,8 +48,8 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white pb-safe">
-        <div className="px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl bg-white pb-safe">
+        <div className="flex-1 overflow-y-auto px-4 py-3">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
           <h3 className="mb-4 text-base font-semibold text-gray-900">Regenerate list</h3>
 
@@ -133,10 +133,12 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
             </button>
           </div>
 
-          <p className="mb-4 text-xs text-gray-400">
+          <p className="text-xs text-gray-400">
             Manually added items will be kept. Only AI-generated items will be replaced.
           </p>
+        </div>
 
+        <div className="border-t border-gray-100 px-4 py-3">
           <button
             onClick={handleRegenerate}
             disabled={submitting}
