@@ -120,6 +120,7 @@ export interface ChecklistItem {
   source: "llm" | "manual";
   sort_order: number | null;
   quantity: number | null;
+  reasoning: string | null;
   created_at: string | null;
   updated_at: string | null;
 }

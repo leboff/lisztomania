@@ -97,7 +97,15 @@ def build_generation_prompt(
             lines.append(f"- {b['name']} [{b['type']}]{owner_str}")
     else:
         lines.append("- 1 carry-on bag")
-
+    lines.append("")
+    lines.append("## Bag Packing Strategy")
+    lines.append("- MAXIMIZE utilization of Carry-on and Personal Item bags. These should be filled first.")
+    lines.append("- Use Checked bags ONLY for overflow items, large liquids, or bulky equipment.")
+    lines.append("- PERSONAL ITEMS (clothing, toiletries, personal electronics, shoes) for a specific traveler MUST be placed into a bag OWNED by that traveler if one exists.")
+    lines.append("- If a traveler does NOT own a bag, place their items in 'Shared' bags (bags listed without an owner).")
+    lines.append("- SHARED ITEMS (sunscreen, first aid, snacks, group games) should be placed in Shared bags.")
+    lines.append("- Do NOT place one person's clothing in another person's carry-on if both have their own carry-on bags available.")
+    lines.append("")
     # Library items that always pack or match context
     trip_type = (trip.get("trip_type") or "").lower()
     weather_data = trip.get("weather_data") or {}
@@ -161,10 +169,10 @@ def build_generation_prompt(
         "- item_name: concise name (e.g. 'Passport', 'Running shoes')",
         "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous, Pre-Trip Task]",
         "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
-        f"- suggested_bag_name: one of {bag_names} or null. For 'Pre-Trip Task' items, always use null.",
-        f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad').",
+        f"- suggested_bag_name: one of {bag_names} or null. Follow the Bag Packing Strategy strictly. For 'Pre-Trip Task' items, always use null.",
+        f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad'). Ensure the assigned_profile_name matches the owner of the suggested_bag_name where applicable.",
         "- quantity: integer or null — the count for ONE person (e.g. 7 socks, 5 underwear for a 7-day trip). Leave null for singular items like passport, charger, hat. Never sum quantities across travelers into one item.",
-        "- reasoning: brief explanation (optional, for debugging)",
+        "- reasoning: brief explanation (optional, for debugging). For belongings in bags, briefly mention why this bag was chosen (e.g. 'Carry-on owned by Jane').",
         "",
         f"Generate {20 + 10 * (len(profile_names) - 1)}-{60 + 15 * (len(profile_names) - 1)} packing items appropriate for the trip. Include essentials plus context-specific items.",
         "Additionally, generate 3-6 'Pre-Trip Task' items — practical tasks to complete BEFORE the trip (e.g. 'Charge iPads', 'Check in to flight', 'Download movies for offline viewing', 'Check passport validity', 'Book airport parking'). Adjust based on trip type: for international trips include entry/visa requirement checks; for flights include check-in and electronics charging. These must use category 'Pre-Trip Task' and suggested_bag_name null.",

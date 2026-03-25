@@ -15,6 +15,7 @@ class ChecklistItemCreate(BaseModel):
     bag_id: str | None = None
     sort_order: int | None = None
     quantity: int | None = None
+    reasoning: str | None = None
 
 
 class ChecklistItemUpdate(BaseModel):
@@ -27,6 +28,7 @@ class ChecklistItemUpdate(BaseModel):
     was_unused: bool | None = None
     sort_order: int | None = None
     quantity: int | None = None
+    reasoning: str | None = None
 
 
 class ChecklistItemResponse(BaseModel):
@@ -42,6 +44,7 @@ class ChecklistItemResponse(BaseModel):
     source: str
     sort_order: int | None = None
     quantity: int | None = None
+    reasoning: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

@@ -153,6 +153,7 @@ async def generate_trip_checklist(
                 "bag_id": bag_id,
                 "assigned_profile_id": profile_id,
                 "quantity": item.quantity,
+                "reasoning": item.reasoning,
                 "source": "llm",
                 "sort_order": i,
             })
