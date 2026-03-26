@@ -148,7 +148,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
           <button
             onClick={() => setTab("packing")}
             className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              tab === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Packing List
@@ -156,7 +156,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
           <button
             onClick={() => setTab("tasks")}
             className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "tasks" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              tab === "tasks" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Pre-Trip Tasks
