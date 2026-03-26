@@ -18,21 +18,21 @@ export function ProgressDashboard({ items, bags, profiles, globalPercent, byProf
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="sticky top-14 z-30 bg-white border-b border-gray-100 px-4 py-3 no-print">
+    <div className="sticky top-14 z-30 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 no-print">
       {/* Global bar */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
             className="h-2 bg-indigo-500 rounded-full transition-all duration-300"
             style={{ width: `${globalPercent}%` }}
           />
         </div>
-        <span className="text-xs font-semibold text-gray-500 shrink-0">
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 shrink-0">
           {checked}/{total}
         </span>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors shrink-0"
           aria-label={expanded ? "Collapse progress rings" : "Expand progress rings"}
         >
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
