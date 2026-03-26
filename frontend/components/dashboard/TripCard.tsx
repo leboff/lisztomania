@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { Trip } from "@/types";
+import { formatLocation } from "@/lib/location";
 
 interface TripCardProps {
   trip: Trip;
@@ -28,10 +29,10 @@ export function TripCard({ trip, onCopy }: TripCardProps) {
               {trip.trip_type || "Trip"}
             </p>
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {trip.name || trip.destination}
+              {trip.name || formatLocation(trip.destination)}
             </h3>
             <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-              {trip.origin} → {trip.destination}
+              {formatLocation(trip.origin)} → {formatLocation(trip.destination)}
             </p>
             <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
               {trip.start_date} – {trip.end_date}
