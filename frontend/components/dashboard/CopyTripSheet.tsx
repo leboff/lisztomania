@@ -28,8 +28,9 @@ export function CopyTripSheet({ trip, onClose }: Props) {
         end_date: endDate,
         copy_checklist: copyChecklist,
       });
-      if (!copyChecklist) {
-        // Fire generation without awaiting — the trip page will poll for status
+      if (newTrip.generation_status === "pending") {
+        // Source had no items to copy (or AI generation was requested) —
+        // fire generation without awaiting; the trip page will poll for status
         checklistService.generate(newTrip.id, { refreshWeather: true }).catch(() => {});
       }
       onClose();

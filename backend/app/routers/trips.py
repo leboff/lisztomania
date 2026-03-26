@@ -127,10 +127,18 @@ async def copy_trip(
     new_trip_data["start_date"] = str(body.start_date)
     new_trip_data["end_date"] = str(body.end_date)
     new_trip_data["template_trip_id"] = trip_id
-    # When copying the checklist, mark complete immediately so the trip page shows items
-    new_trip_data["generation_status"] = "complete" if body.copy_checklist else "pending"
     new_trip_data["hindsight_completed"] = False
     new_trip_data["collaborator_ids"] = []
+
+    # Pre-fetch source checklist items so we know whether there's anything to copy
+    source_items = []
+    if body.copy_checklist:
+        items_result = db.table("checklist_items").select("*").eq("trip_id", trip_id).execute()
+        source_items = items_result.data or []
+
+    # Only mark complete if we actually have items to copy; otherwise stay pending so
+    # the frontend knows to trigger AI generation
+    new_trip_data["generation_status"] = "complete" if source_items else "pending"
 
     new_trip_result = db.table("trips").insert(new_trip_data).execute()
     new_trip = new_trip_result.data[0]
@@ -155,28 +163,26 @@ async def copy_trip(
             }).execute()
             bag_id_map[bag["id"]] = new_bag.data[0]["id"]
 
-    # Optionally copy checklist items
-    if body.copy_checklist:
-        items_result = db.table("checklist_items").select("*").eq("trip_id", trip_id).execute()
-        if items_result.data:
-            item_rows = []
-            for item in items_result.data:
-                item_rows.append({
-                    "trip_id": new_trip_id,
-                    "item_name": item["item_name"],
-                    "category": item.get("category"),
-                    "timing_attribute": item.get("timing_attribute"),
-                    "assigned_profile_id": item.get("assigned_profile_id"),
-                    "bag_id": bag_id_map.get(item["bag_id"]) if item.get("bag_id") else None,
-                    "quantity": item.get("quantity"),
-                    "reasoning": item.get("reasoning"),
-                    "source": item.get("source", "manual"),
-                    "sort_order": item.get("sort_order"),
-                    "is_checked": False,
-                    "was_unused": False,
-                    "was_wished_for": False,
-                })
-            db.table("checklist_items").insert(item_rows).execute()
+    # Copy checklist items (already fetched above)
+    if source_items:
+        item_rows = []
+        for item in source_items:
+            item_rows.append({
+                "trip_id": new_trip_id,
+                "item_name": item["item_name"],
+                "category": item.get("category"),
+                "timing_attribute": item.get("timing_attribute"),
+                "assigned_profile_id": item.get("assigned_profile_id"),
+                "bag_id": bag_id_map.get(item["bag_id"]) if item.get("bag_id") else None,
+                "quantity": item.get("quantity"),
+                "reasoning": item.get("reasoning"),
+                "source": item.get("source", "manual"),
+                "sort_order": item.get("sort_order"),
+                "is_checked": False,
+                "was_unused": False,
+                "was_wished_for": False,
+            })
+        db.table("checklist_items").insert(item_rows).execute()
 
     return _enrich_trip(new_trip, db)
 
