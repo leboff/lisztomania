@@ -7,9 +7,11 @@ class UserResponse(BaseModel):
     email: str
     name: str | None = None
     default_origin: str | None = None
+    is_admin: bool = False
     created_at: datetime | None = None
 
 
 class UserUpdate(BaseModel):
     name: str | None = None
     default_origin: str | None = None
+    is_admin: bool | None = None
