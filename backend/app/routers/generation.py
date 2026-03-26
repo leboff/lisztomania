@@ -128,7 +128,13 @@ async def generate_trip_checklist(
         prompt = build_generation_prompt(trip, profiles, bags, library_items, hindsight_exclusions, hindsight_inclusions)
 
         # Call LLM
-        llm_response = await generate_checklist(prompt)
+        from app.services.admin_service import get_llm_config
+        llm_config = get_llm_config()
+        llm_response = await generate_checklist(
+            prompt,
+            llm_base_url=llm_config["llm_base_url"] or None,
+            llm_model=llm_config["llm_model"],
+        )
 
         # Build name → id maps for post-processing
         bag_map = {b["name"].lower().strip(): b["id"] for b in bags}

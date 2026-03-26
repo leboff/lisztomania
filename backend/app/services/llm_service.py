@@ -4,13 +4,17 @@ from app.config import settings
 from app.schemas.generation import LLMGenerationResponse, LLMChecklistItem
 
 
-async def generate_checklist(prompt: str) -> LLMGenerationResponse:
+async def generate_checklist(
+    prompt: str,
+    llm_base_url: str | None = None,
+    llm_model: str | None = None,
+) -> LLMGenerationResponse:
     """
     Call an OpenAI-compatible API with the assembled prompt using structured JSON output.
     Validates the response against LLMGenerationResponse Pydantic schema.
     Retries once on validation failure.
 
-    Configure via .env:
+    Configure via .env (or override via llm_base_url/llm_model parameters):
       OPENAI_API_KEY   — required (even for non-OpenAI providers, set to their key)
       LLM_BASE_URL     — optional; overrides the default OpenAI endpoint.
                          Examples:
@@ -19,9 +23,12 @@ async def generate_checklist(prompt: str) -> LLMGenerationResponse:
                            https://openrouter.ai/api/v1     (OpenRouter)
       LLM_MODEL        — model name to use (default: gpt-4o-mini)
     """
+    effective_base_url = llm_base_url or settings.llm_base_url
+    effective_model = llm_model or settings.llm_model
+
     client_kwargs: dict = {"api_key": settings.openai_api_key or "no-key"}
-    if settings.llm_base_url:
-        client_kwargs["base_url"] = settings.llm_base_url
+    if effective_base_url:
+        client_kwargs["base_url"] = effective_base_url
     client = AsyncOpenAI(**client_kwargs)
 
     schema = {
@@ -61,13 +68,13 @@ async def generate_checklist(prompt: str) -> LLMGenerationResponse:
     ]
 
     # Providers that support structured output (json_schema response_format)
-    use_json_schema = not settings.llm_base_url or "openai.com" in settings.llm_base_url
+    use_json_schema = not effective_base_url or "openai.com" in effective_base_url
 
     for attempt in range(2):
         try:
             if use_json_schema:
                 response = await client.chat.completions.create(
-                    model=settings.llm_model,
+                    model=effective_model,
                     messages=messages,
                     response_format={
                         "type": "json_schema",
@@ -79,7 +86,7 @@ async def generate_checklist(prompt: str) -> LLMGenerationResponse:
                 # Fallback for providers that only support json_object mode
                 # (Ollama, Groq, OpenRouter with many models, etc.)
                 response = await client.chat.completions.create(
-                    model=settings.llm_model,
+                    model=effective_model,
                     messages=messages,
                     response_format={"type": "json_object"},
                     temperature=0.7,

@@ -3,7 +3,14 @@ export interface User {
   email: string;
   name: string | null;
   default_origin: string | null;
+  is_admin: boolean;
   created_at: string | null;
+}
+
+export interface LLMConfig {
+  llm_base_url: string;
+  llm_model: string;
+  source: string;
 }
 
 export interface Profile {
