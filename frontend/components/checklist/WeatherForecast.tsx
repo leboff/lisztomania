@@ -55,8 +55,8 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
     // Legacy fallback: just show the text summary
     if (weatherSummary) {
       return (
-        <div className="mx-4 mt-3 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-4">
-          <p className="text-sm text-gray-600">{weatherSummary}</p>
+        <div className="mx-4 mt-3 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/40 dark:to-indigo-950/40 p-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300">{weatherSummary}</p>
         </div>
       );
     }
@@ -65,11 +65,11 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
 
   return (
     <div className={compact ? "" : "mx-4 mt-3"}>
-      <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 p-4">
+      <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/40 dark:to-indigo-950/40 p-4">
         {/* Header */}
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-base">🌤️</span>
-          <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-wide">
             Weather Forecast
           </p>
         </div>
@@ -84,17 +84,17 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
             return (
               <div
                 key={day.date}
-                className="flex-shrink-0 flex flex-col items-center rounded-xl bg-white/70 backdrop-blur-sm px-3 py-2.5 min-w-[72px] shadow-sm"
+                className="flex-shrink-0 flex flex-col items-center rounded-xl bg-white/70 dark:bg-white/10 backdrop-blur-sm px-3 py-2.5 min-w-[72px] shadow-sm"
               >
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-400 uppercase tracking-wide">
                   {weekday}
                 </p>
-                <p className="text-[10px] text-gray-400 mb-1.5">{monthDay}</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-1.5">{monthDay}</p>
                 <span className="text-2xl mb-1.5">{emoji}</span>
-                <p className="text-xs font-bold text-gray-800">{day.high_f}°</p>
-                <p className="text-[10px] text-gray-400">{day.low_f}°</p>
+                <p className="text-xs font-bold text-gray-800 dark:text-gray-100">{day.high_f}°</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500">{day.low_f}°</p>
                 {precipPct > 10 && (
-                  <p className="text-[9px] text-sky-500 mt-1 font-medium">{precipPct}% 💧</p>
+                  <p className="text-[9px] text-sky-500 dark:text-sky-400 mt-1 font-medium">{precipPct}% 💧</p>
                 )}
               </div>
             );
@@ -103,7 +103,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
 
         {/* Summary line */}
         {weatherSummary && (
-          <p className="mt-3 text-xs text-gray-500 leading-relaxed">{weatherSummary}</p>
+          <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{weatherSummary}</p>
         )}
       </div>
     </div>

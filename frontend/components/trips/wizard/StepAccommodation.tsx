@@ -115,20 +115,20 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
 
   return (
     <div className="flex flex-1 flex-col px-4 py-6">
-      <button onClick={onBack} className="mb-6 flex items-center gap-1 text-sm text-gray-400">
+      <button onClick={onBack} className="mb-6 flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
         Back
       </button>
 
-      <h2 className="mb-1 text-2xl font-bold text-gray-900">Where are you sleeping?</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 3 of 5 — Helps us suggest the right shared items</p>
+      <h2 className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">Where are you sleeping?</h2>
+      <p className="mb-6 text-sm text-gray-400 dark:text-gray-500">Step 3 of 5 — Helps us suggest the right shared items</p>
 
       {/* Saved accommodations picker */}
       {accommodations.length > 0 && (
         <div className="mb-5">
-          <p className="mb-2 text-sm font-medium text-gray-700">Saved places</p>
+          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Saved places</p>
           <div className="flex flex-wrap gap-2">
             {accommodations.map((acc) => (
               <button
@@ -137,13 +137,13 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
                 onClick={() => selectSavedAccommodation(acc.id)}
                 className={`rounded-xl border px-4 py-2.5 text-left text-sm transition-colors ${
                   data.accommodation_id === acc.id
-                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                    : "border-gray-200 bg-white text-gray-700"
+                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300"
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                 }`}
               >
                 <p className="font-medium">{acc.name}</p>
                 {acc.accommodation_type && (
-                  <p className="text-xs text-gray-400 capitalize mt-0.5">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-0.5">
                     {acc.accommodation_type.replace("_", " ")}
                   </p>
                 )}
@@ -154,8 +154,8 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
               onClick={selectAdHoc}
               className={`rounded-xl border px-4 py-2.5 text-sm transition-colors ${
                 data.accommodation_id === null && (data.accommodation_type || rooms.length > 0)
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                  : "border-dashed border-gray-200 text-gray-400"
+                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300"
+                  : "border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500"
               }`}
             >
               + New place
@@ -166,7 +166,7 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
 
       {/* Accommodation type picker */}
       <div className="mb-5">
-        <p className="mb-2 text-sm font-medium text-gray-700">Type</p>
+        <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Type</p>
         <div className="grid grid-cols-3 gap-2">
           {ACCOMMODATION_TYPES.map((t) => (
             <button
@@ -181,7 +181,7 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
               className={`rounded-xl py-2.5 text-sm font-medium transition-colors ${
                 data.accommodation_type === t.value
                   ? "bg-indigo-500 text-white"
-                  : "bg-gray-100 text-gray-600"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
               }`}
             >
               {t.label}
@@ -193,20 +193,20 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
       {/* Room assignment — hidden for camping or solo */}
       {!isCamping && !isSolo && (
         <div className="mb-4">
-          <p className="mb-2 text-sm font-medium text-gray-700">Sleeping rooms</p>
-          <p className="mb-3 text-xs text-gray-400">
+          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Sleeping rooms</p>
+          <p className="mb-3 text-xs text-gray-400 dark:text-gray-500">
             Assign travelers to rooms so we know how many shared items to suggest (white noise machine, slumberpod, etc.)
           </p>
 
           <div className="space-y-3">
             {rooms.map((room, roomIndex) => (
-              <div key={roomIndex} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <div key={roomIndex} className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <input
                     type="text"
                     value={room.name}
                     onChange={(e) => updateRoomName(roomIndex, e.target.value)}
-                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+                    className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 dark:text-gray-100 px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
                     placeholder={`Room ${roomIndex + 1}`}
                   />
                   {rooms.length > 1 && (
@@ -252,7 +252,7 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
                     onChange={(e) => {
                       if (e.target.value) assignToRoom(e.target.value, roomIndex);
                     }}
-                    className="w-full rounded-lg border border-dashed border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-400 outline-none"
+                    className="w-full rounded-lg border border-dashed border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-400 px-3 py-1.5 text-xs text-gray-400 outline-none"
                   >
                     <option value="">+ Add traveler</option>
                     {unassignedProfiles.map((p) => (
@@ -278,13 +278,13 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
       )}
 
       {isCamping && (
-        <p className="mb-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+        <p className="mb-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
           Outdoor sleep gear will be suggested for everyone (sleeping bags, sleeping pads, etc.)
         </p>
       )}
 
       {isSolo && (
-        <p className="mb-4 text-sm text-gray-400">Solo traveler — room grouping not needed.</p>
+        <p className="mb-4 text-sm text-gray-400 dark:text-gray-500">Solo traveler — room grouping not needed.</p>
       )}
 
       <div className="mt-auto pt-4">

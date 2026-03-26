@@ -32,11 +32,11 @@ export function WishedForSheet({ open, onClose, tripId, onAdded }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white dark:bg-gray-900 pb-safe">
         <div className="px-4 py-5">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
-          <h3 className="mb-1 text-base font-semibold text-gray-900">Forgot something?</h3>
-          <p className="mb-4 text-sm text-gray-500">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+          <h3 className="mb-1 text-base font-semibold text-gray-900 dark:text-gray-100">Forgot something?</h3>
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
             Add it here and we&apos;ll remind you to pack it next time.
           </p>
           <div className="flex gap-2">
@@ -47,7 +47,7 @@ export function WishedForSheet({ open, onClose, tripId, onAdded }: Props) {
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               placeholder="e.g. Belt, Sun hat, Rain jacket…"
               autoFocus
-              className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
             />
             <button
               onClick={handleAdd}

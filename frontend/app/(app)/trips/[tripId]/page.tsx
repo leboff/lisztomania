@@ -64,17 +64,17 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   if (isLoading) {
     return (
       <div>
-        <div className="h-14 bg-white border-b border-gray-100" />
+        <div className="h-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800" />
         <div className="px-4 py-4 space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-12 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
           ))}
         </div>
       </div>
     );
   }
 
-  if (!trip) return <div className="px-4 py-8 text-center text-gray-400">Trip not found.</div>;
+  if (!trip) return <div className="px-4 py-8 text-center text-gray-400 dark:text-gray-500">Trip not found.</div>;
 
   const today = new Date().toISOString().split("T")[0];
   const isPast = trip.end_date < today;
@@ -93,8 +93,8 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
                 href={`/trips/${trip.id}/hindsight`}
                 className={`rounded-full px-3 py-1 text-xs font-medium ${
                   needsReview
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-gray-100 text-gray-500"
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                    : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                 }`}
               >
                 {needsReview ? "Review trip" : "How'd it go?"}
@@ -103,7 +103,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             {trip.generation_status === "complete" && (
               <button
                 onClick={() => setWishedForOpen(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 no-print"
                 aria-label="Forgot something?"
                 title="Forgot something?"
               >
@@ -116,7 +116,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
               <>
                 <button
                   onClick={() => setManageBagsOpen(true)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 no-print"
                   aria-label="Manage bags"
                 >
                   <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -125,7 +125,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
                 </button>
                 <button
                   onClick={() => setRegenerateOpen(true)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 no-print"
                   aria-label="Regenerate list"
                 >
                   <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -136,7 +136,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             )}
             <button
               onClick={() => setCollaborateOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 no-print"
               aria-label="Share trip"
             >
               <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -145,7 +145,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             </button>
             <button
               onClick={() => window.print()}
-              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 no-print"
               aria-label="Print"
             >
               <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -164,21 +164,21 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
       )}
 
       {trip.generation_status === "generating" && (
-        <div className="mx-4 mt-4 rounded-xl bg-yellow-50 p-4 text-center">
+        <div className="mx-4 mt-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 p-4 text-center">
           <div className="mb-2 flex items-center justify-center gap-2">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" />
-            <span className="text-sm font-medium text-yellow-700">Generating your list…</span>
+            <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">Generating your list…</span>
           </div>
-          <p className="text-xs text-yellow-600">This may take a moment.</p>
+          <p className="text-xs text-yellow-600 dark:text-yellow-500">This may take a moment.</p>
         </div>
       )}
 
       {trip.generation_status === "error" && (
-        <div className="mx-4 mt-4 rounded-xl bg-red-50 p-4 text-center">
-          <p className="text-sm text-red-600 mb-2">Generation failed.</p>
+        <div className="mx-4 mt-4 rounded-xl bg-red-50 dark:bg-red-900/20 p-4 text-center">
+          <p className="text-sm text-red-600 dark:text-red-400 mb-2">Generation failed.</p>
           <button
             onClick={() => setRegenerateOpen(true)}
-            className="text-sm font-medium text-red-700 underline"
+            className="text-sm font-medium text-red-700 dark:text-red-400 underline"
           >
             Try again
           </button>
@@ -195,7 +195,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
 
       {trip.generation_status === "pending" && (
         <div className="flex flex-col items-center py-12 px-4 text-center">
-          <p className="text-gray-500 text-sm">Your list hasn&apos;t been generated yet.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Your list hasn&apos;t been generated yet.</p>
         </div>
       )}
 

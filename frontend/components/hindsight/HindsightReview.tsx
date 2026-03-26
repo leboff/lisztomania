@@ -47,19 +47,19 @@ export function HindsightReview({ tripId, items }: Props) {
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-1">How did it go?</h2>
-      <p className="text-sm text-gray-500 mb-6">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">How did it go?</h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         We&apos;ll remember your feedback to improve future lists.
       </p>
 
       {/* Packed but didn't use */}
       <div className="mb-6">
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">
+        <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
           Packed — tap if you didn&apos;t end up using it
         </h3>
         <div className="space-y-2">
           {checkedItems.length === 0 && (
-            <p className="text-sm text-gray-400">No items were checked on this trip.</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">No items were checked on this trip.</p>
           )}
           {checkedItems.map((item) => {
             const isUnused = unusedIds.has(item.id);
@@ -68,12 +68,14 @@ export function HindsightReview({ tripId, items }: Props) {
                 key={item.id}
                 onClick={() => toggleUnused(item.id)}
                 className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
-                  isUnused ? "border-amber-200 bg-amber-50" : "border-gray-100 bg-white"
+                  isUnused
+                    ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+                    : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800"
                 }`}
               >
                 <div
                   className={`flex h-6 w-6 items-center justify-center rounded-full border-2 shrink-0 ${
-                    isUnused ? "border-amber-500 bg-amber-500" : "border-gray-200"
+                    isUnused ? "border-amber-500 bg-amber-500" : "border-gray-200 dark:border-gray-600"
                   }`}
                 >
                   {isUnused && (
@@ -82,7 +84,7 @@ export function HindsightReview({ tripId, items }: Props) {
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm font-medium ${isUnused ? "text-amber-700" : "text-gray-900"}`}>
+                <span className={`text-sm font-medium ${isUnused ? "text-amber-700 dark:text-amber-400" : "text-gray-900 dark:text-gray-100"}`}>
                   {item.item_name}
                 </span>
               </button>
@@ -94,7 +96,7 @@ export function HindsightReview({ tripId, items }: Props) {
       {/* Didn't pack but wish I had */}
       {uncheckedItems.length > 0 && (
         <div className="mb-8">
-          <h3 className="mb-2 text-sm font-semibold text-gray-700">
+          <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
             Didn&apos;t pack — tap if you wish you had
           </h3>
           <div className="space-y-2">
@@ -105,12 +107,14 @@ export function HindsightReview({ tripId, items }: Props) {
                   key={item.id}
                   onClick={() => toggleWishedFor(item.id)}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
-                    isWished ? "border-indigo-200 bg-indigo-50" : "border-gray-100 bg-white"
+                    isWished
+                      ? "border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20"
+                      : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800"
                   }`}
                 >
                   <div
                     className={`flex h-6 w-6 items-center justify-center rounded-full border-2 shrink-0 ${
-                      isWished ? "border-indigo-500 bg-indigo-500" : "border-gray-200"
+                      isWished ? "border-indigo-500 bg-indigo-500" : "border-gray-200 dark:border-gray-600"
                     }`}
                   >
                     {isWished && (
@@ -119,7 +123,7 @@ export function HindsightReview({ tripId, items }: Props) {
                       </svg>
                     )}
                   </div>
-                  <span className={`text-sm font-medium ${isWished ? "text-indigo-700" : "text-gray-900"}`}>
+                  <span className={`text-sm font-medium ${isWished ? "text-indigo-700 dark:text-indigo-300" : "text-gray-900 dark:text-gray-100"}`}>
                     {item.item_name}
                   </span>
                 </button>

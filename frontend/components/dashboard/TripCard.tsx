@@ -8,10 +8,10 @@ interface TripCardProps {
 }
 
 const statusColors: Record<string, string> = {
-  pending: "bg-gray-100 text-gray-600",
-  generating: "bg-yellow-100 text-yellow-700",
-  complete: "bg-green-100 text-green-700",
-  error: "bg-red-100 text-red-600",
+  pending: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300",
+  generating: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+  complete: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+  error: "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400",
 };
 
 export function TripCard({ trip, onCopy }: TripCardProps) {
@@ -21,19 +21,19 @@ export function TripCard({ trip, onCopy }: TripCardProps) {
 
   return (
     <Link href={`/trips/${trip.id}`} className="block">
-      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow active:bg-gray-50">
+      <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-4 shadow-sm hover:shadow-md transition-shadow active:bg-gray-50 dark:active:bg-gray-700">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+            <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">
               {trip.trip_type || "Trip"}
             </p>
-            <h3 className="text-base font-semibold text-gray-900 truncate">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
               {trip.name || trip.destination}
             </h3>
-            <p className="mt-0.5 text-sm text-gray-500">
+            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
               {trip.origin} → {trip.destination}
             </p>
-            <p className="mt-0.5 text-xs text-gray-400">
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
               {trip.start_date} – {trip.end_date}
             </p>
           </div>
@@ -46,7 +46,7 @@ export function TripCard({ trip, onCopy }: TripCardProps) {
                     e.stopPropagation();
                     onCopy(trip);
                   }}
-                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                   aria-label="Copy trip"
                   title="Copy trip"
                 >
@@ -64,7 +64,7 @@ export function TripCard({ trip, onCopy }: TripCardProps) {
               </span>
             </div>
             {needsReview && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                 Review trip
               </span>
             )}
