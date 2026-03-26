@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { tripsService } from "@/services/trips.service";
+import { checklistService } from "@/services/checklist.service";
 import type { Trip } from "@/types";
 
 interface Props {
@@ -27,6 +28,10 @@ export function CopyTripSheet({ trip, onClose }: Props) {
         end_date: endDate,
         copy_checklist: copyChecklist,
       });
+      if (!copyChecklist) {
+        // Fire generation without awaiting — the trip page will poll for status
+        checklistService.generate(newTrip.id, { refreshWeather: true }).catch(() => {});
+      }
       onClose();
       router.push(`/trips/${newTrip.id}`);
     } finally {
