@@ -1,5 +1,6 @@
 "use client";
 import { use, useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTrip } from "@/hooks/useTrips";
 import { useProfiles } from "@/hooks/useProfiles";
 import { ChecklistView } from "@/components/checklist/ChecklistView";
@@ -30,7 +31,8 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   const [collaborateOpen, setCollaborateOpen] = useState(false);
   const [wishedForOpen, setWishedForOpen] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
-  const overflowRef = useRef<HTMLDivElement>(null);
+  const overflowButtonRef = useRef<HTMLButtonElement>(null);
+  const overflowMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // Poll while generating
@@ -44,9 +46,12 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   useEffect(() => {
     if (!overflowOpen) return;
     const handler = (e: MouseEvent) => {
-      if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
-        setOverflowOpen(false);
-      }
+      const target = e.target as Node;
+      if (
+        overflowButtonRef.current?.contains(target) ||
+        overflowMenuRef.current?.contains(target)
+      ) return;
+      setOverflowOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -126,19 +131,19 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
           </h1>
 
           {/* Overflow menu */}
-          <div className="relative shrink-0" ref={overflowRef}>
-            <button
-              onClick={() => setOverflowOpen((o) => !o)}
-              className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-              aria-label="More options"
-            >
-              <svg className="h-5 w-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0 8.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM10.5 20a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z" />
-              </svg>
-            </button>
+          <button
+            ref={overflowButtonRef}
+            onClick={() => setOverflowOpen((o) => !o)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            aria-label="More options"
+          >
+            <svg className="h-5 w-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm0 8.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM10.5 20a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z" />
+            </svg>
+          </button>
 
-            {overflowOpen && (
-              <div className="fixed right-4 top-[60px] w-52 rounded-2xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 py-1 z-[9999]">
+            {overflowOpen && createPortal(
+              <div ref={overflowMenuRef} className="fixed right-4 top-[60px] w-52 rounded-2xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 py-1 z-[9999]">
                 {trip.generation_status === "complete" && (
                   <Link
                     href={`/trips/${trip.id}/hindsight`}
@@ -206,9 +211,9 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
                   </svg>
                   Print list
                 </button>
-              </div>
+              </div>,
+              document.body
             )}
-          </div>
         </div>
 
         {subtitle && (
