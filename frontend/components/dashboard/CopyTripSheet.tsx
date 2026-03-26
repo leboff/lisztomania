@@ -34,6 +34,19 @@ export function CopyTripSheet({ trip, onClose }: Props) {
     }
   };
 
+  if (saving) {
+    return (
+      <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-white">
+        <div className="relative mb-8">
+          <div className="h-20 w-20 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-500" />
+          <span className="absolute inset-0 flex items-center justify-center text-2xl">✨</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900">Creating your trip</h2>
+        <p className="mt-2 text-sm text-gray-400">Just a moment…</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
