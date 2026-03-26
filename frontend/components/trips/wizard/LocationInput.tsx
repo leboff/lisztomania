@@ -51,7 +51,8 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
   };
 
   const select = (loc: any) => {
-    const full = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}${loc.country ? `, ${loc.country}` : ""}`;
+    const country = loc.country !== "United States" ? loc.country : undefined;
+    const full = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}${country ? `, ${country}` : ""}`;
     onChange(full, {
       city: loc.name,
       state: loc.admin1,
@@ -90,7 +91,7 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
             >
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{loc.name}</span>
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                {[loc.admin1, loc.country].filter(Boolean).join(", ")}
+                {[loc.admin1, loc.country !== "United States" ? loc.country : undefined].filter(Boolean).join(", ")}
               </span>
             </button>
           ))}

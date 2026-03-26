@@ -89,9 +89,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
       </div>
 
       <div
-        className={`relative flex items-center gap-3 bg-white dark:bg-gray-900 py-3 px-4 transition-transform ${
-          item.is_checked ? "opacity-60" : ""
-        }`}
+        className="relative flex items-center gap-3 bg-white dark:bg-gray-900 py-3 px-4 transition-transform"
         style={{ transform: `translateX(${swipeX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -100,7 +98,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
         {/* Checkbox — min 44px tap target */}
         <button
           onClick={() => onToggle(item.id)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center"
+          className={`flex h-11 w-11 shrink-0 items-center justify-center${item.is_checked ? " opacity-60" : ""}`}
           aria-label={item.is_checked ? "Uncheck" : "Check"}
         >
           <div
@@ -118,7 +116,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
           </div>
         </button>
 
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0${item.is_checked ? " opacity-60" : ""}`}>
           <p
             className={`text-sm font-medium text-gray-900 dark:text-gray-100 ${
               item.is_checked ? "line-through text-gray-400 dark:text-gray-500" : ""
@@ -138,7 +136,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
         {(bag || profile) && (
           <button
             onClick={() => onReassign(item.id)}
-            className="shrink-0 flex items-center gap-1 max-w-[45%]"
+            className={`shrink-0 flex items-center gap-1 max-w-[45%]${item.is_checked ? " opacity-60" : ""}`}
           >
             {bag && (
               <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-xs text-blue-600 dark:text-blue-400 font-medium truncate max-w-[120px]">

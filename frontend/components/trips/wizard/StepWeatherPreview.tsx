@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { checklistService } from "@/services/checklist.service";
 import { WeatherForecast } from "@/components/checklist/WeatherForecast";
 import type { TripFormData } from "./TripWizard";
+import { formatLocation } from "@/lib/location";
 
 interface Props {
   data: Partial<TripFormData>;
@@ -116,7 +117,7 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
               >
                 <span className="font-medium text-gray-900 dark:text-gray-100">{loc.name}</span>
                 <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
-                  {loc.admin1 ? `${loc.admin1}, ` : ""}{loc.country}
+                  {[loc.admin1, loc.country !== "United States" ? loc.country : undefined].filter(Boolean).join(", ")}
                 </span>
                 <span className="ml-2 text-[10px] text-gray-300 dark:text-gray-600">
                   {loc.latitude.toFixed(2)}, {loc.longitude.toFixed(2)}
@@ -137,7 +138,7 @@ export function StepWeatherPreview({ data, onUpdate, onNext, onBack, error }: Pr
       ) : (
         <div className="rounded-2xl overflow-hidden mb-6">
           <div className="px-0 pb-0 pt-0">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{data.destination}</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{data.destination ? formatLocation(data.destination) : ""}</p>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
               {data.start_date} – {data.end_date}
             </p>

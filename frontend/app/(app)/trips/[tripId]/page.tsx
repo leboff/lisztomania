@@ -15,6 +15,7 @@ import { WishedForSheet } from "@/components/checklist/WishedForSheet";
 import useSWR from "swr";
 import type { Bag } from "@/types";
 import Link from "next/link";
+import { formatLocation } from "@/lib/location";
 
 export default function TripChecklistPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params);
@@ -84,7 +85,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   return (
     <div>
       <PageHeader
-        title={trip.name || trip.destination}
+        title={trip.name || formatLocation(trip.destination)}
         showBack
         action={
           <div className="flex items-center gap-2">
