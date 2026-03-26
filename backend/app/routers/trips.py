@@ -182,7 +182,12 @@ async def copy_trip(
                 "was_unused": False,
                 "was_wished_for": False,
             })
-        db.table("checklist_items").insert(item_rows).execute()
+        # Insert in batches of 50 to avoid request size limits
+        BATCH = 50
+        for i in range(0, len(item_rows), BATCH):
+            result = db.table("checklist_items").insert(item_rows[i:i+BATCH]).execute()
+            if not result.data:
+                raise HTTPException(status_code=500, detail=f"Checklist item insert failed at batch {i//BATCH}")
 
     return _enrich_trip(new_trip, db)
 
