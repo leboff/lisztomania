@@ -59,7 +59,7 @@ export function LibraryItemForm({ item, onSave, onCancel, defaultItemType }: Pro
           type="button"
           onClick={() => setItemType("packing")}
           className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-            itemType === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            itemType === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           }`}
         >
           Packing Item
@@ -68,7 +68,7 @@ export function LibraryItemForm({ item, onSave, onCancel, defaultItemType }: Pro
           type="button"
           onClick={() => setItemType("task")}
           className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-            itemType === "task" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            itemType === "task" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           }`}
         >
           Task Template

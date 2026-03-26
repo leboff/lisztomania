@@ -90,7 +90,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
               <button
                 onClick={() => setMode("new")}
                 className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "new" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400"
+                  mode === "new" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 New Item
@@ -98,7 +98,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
               <button
                 onClick={() => setMode("library")}
                 className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "library" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400"
+                  mode === "library" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 From Library
