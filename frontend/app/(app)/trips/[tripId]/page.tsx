@@ -11,6 +11,7 @@ import { tripsService } from "@/services/trips.service";
 import { apiClient } from "@/lib/api/client";
 import { ManageBagsSheet } from "@/components/checklist/ManageBagsSheet";
 import { CollaborateSheet } from "@/components/checklist/CollaborateSheet";
+import { WishedForSheet } from "@/components/checklist/WishedForSheet";
 import useSWR from "swr";
 import type { Bag } from "@/types";
 import Link from "next/link";
@@ -26,6 +27,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [manageBagsOpen, setManageBagsOpen] = useState(false);
   const [collaborateOpen, setCollaborateOpen] = useState(false);
+  const [wishedForOpen, setWishedForOpen] = useState(false);
 
   // Poll while generating
   useEffect(() => {
@@ -86,13 +88,29 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
         showBack
         action={
           <div className="flex items-center gap-2">
-            {needsReview && (
+            {trip.generation_status === "complete" && (
               <Link
                 href={`/trips/${trip.id}/hindsight`}
-                className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700"
+                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                  needsReview
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
               >
-                Review trip
+                {needsReview ? "Review trip" : "How'd it go?"}
               </Link>
+            )}
+            {trip.generation_status === "complete" && (
+              <button
+                onClick={() => setWishedForOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 no-print"
+                aria-label="Forgot something?"
+                title="Forgot something?"
+              >
+                <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </button>
             )}
             {canRegenerate && (
               <>
@@ -204,6 +222,12 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             onClose={() => setCollaborateOpen(false)}
             trip={trip}
             onRefresh={async () => { await mutate(); }}
+          />
+          <WishedForSheet
+            open={wishedForOpen}
+            onClose={() => setWishedForOpen(false)}
+            tripId={trip.id}
+            onAdded={() => { /* checklist real-time sub will pick it up */ }}
           />
         </>
       )}

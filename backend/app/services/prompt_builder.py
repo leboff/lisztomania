@@ -7,6 +7,7 @@ def build_generation_prompt(
     bags: list[dict],
     library_items: list[dict],
     hindsight_exclusions: list[str],
+    hindsight_inclusions: list[str] = [],
 ) -> str:
     """
     Assembles the full LLM prompt from all trip context.
@@ -158,6 +159,14 @@ def build_generation_prompt(
         )
         for exc in hindsight_exclusions:
             lines.append(f"- {exc}")
+
+    if hindsight_inclusions:
+        lines.append("")
+        lines.append(
+            "## Items the User Wished They Had Packed on Past Similar Trips (strongly consider including):"
+        )
+        for inc in hindsight_inclusions:
+            lines.append(f"- {inc}")
 
     bag_names = [b["name"] for b in bags] if bags else ["Carry-on"]
     profile_names = [p["name"] for p in profiles] if profiles else ["Traveler"]

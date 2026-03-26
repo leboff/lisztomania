@@ -80,3 +80,10 @@ class TripResponse(BaseModel):
 
 class CollaboratorInvite(BaseModel):
     email: str
+
+
+class TripCopyOptions(BaseModel):
+    start_date: date
+    end_date: date
+    name: str | None = None
+    copy_checklist: bool = False

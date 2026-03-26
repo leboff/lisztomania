@@ -118,6 +118,7 @@ export interface ChecklistItem {
   bag_id: string | null;
   is_checked: boolean;
   was_unused: boolean;
+  was_wished_for: boolean;
   source: "llm" | "manual";
   sort_order: number | null;
   quantity: number | null;

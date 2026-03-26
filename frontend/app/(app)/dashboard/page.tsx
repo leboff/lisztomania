@@ -1,11 +1,15 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/dashboard/TripCard";
+import { CopyTripSheet } from "@/components/dashboard/CopyTripSheet";
 import { PageHeader } from "@/components/layout/PageHeader";
+import type { Trip } from "@/types";
 
 export default function DashboardPage() {
   const { trips, isLoading } = useTrips();
+  const [copyTarget, setCopyTarget] = useState<Trip | null>(null);
 
   return (
     <div>
@@ -49,8 +53,12 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {!isLoading && trips.map((trip) => <TripCard key={trip.id} trip={trip} />)}
+        {!isLoading && trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} onCopy={setCopyTarget} />
+        ))}
       </div>
+
+      <CopyTripSheet trip={copyTarget} onClose={() => setCopyTarget(null)} />
     </div>
   );
 }

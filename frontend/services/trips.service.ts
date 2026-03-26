@@ -30,4 +30,8 @@ export const tripsService = {
     apiClient.post<Trip>(`/trips/${tripId}/collaborators`, { email }),
   removeCollaborator: (tripId: string, userId: string) =>
     apiClient.delete<Trip>(`/trips/${tripId}/collaborators/${userId}`),
+  copy: (
+    tripId: string,
+    opts: { start_date: string; end_date: string; name?: string; copy_checklist?: boolean }
+  ) => apiClient.post<Trip>(`/trips/${tripId}/copy`, opts),
 };
