@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { tripsService } from "@/services/trips.service";
+import { checklistService } from "@/services/checklist.service";
 import type { Trip } from "@/types";
 
 interface Props {
@@ -27,12 +28,29 @@ export function CopyTripSheet({ trip, onClose }: Props) {
         end_date: endDate,
         copy_checklist: copyChecklist,
       });
+      if (!copyChecklist) {
+        // Fire generation without awaiting — the trip page will poll for status
+        checklistService.generate(newTrip.id, { refreshWeather: true }).catch(() => {});
+      }
       onClose();
       router.push(`/trips/${newTrip.id}`);
     } finally {
       setSaving(false);
     }
   };
+
+  if (saving) {
+    return (
+      <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-white">
+        <div className="relative mb-8">
+          <div className="h-20 w-20 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-500" />
+          <span className="absolute inset-0 flex items-center justify-center text-2xl">✨</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900">Creating your trip</h2>
+        <p className="mt-2 text-sm text-gray-400">Just a moment…</p>
+      </div>
+    );
+  }
 
   return (
     <>
