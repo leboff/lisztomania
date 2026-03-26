@@ -4,6 +4,7 @@ import type { Trip } from "@/types";
 
 interface TripCardProps {
   trip: Trip;
+  onCopy?: (trip: Trip) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -13,7 +14,7 @@ const statusColors: Record<string, string> = {
   error: "bg-red-100 text-red-600",
 };
 
-export function TripCard({ trip }: TripCardProps) {
+export function TripCard({ trip, onCopy }: TripCardProps) {
   const today = new Date().toISOString().split("T")[0];
   const isPast = trip.end_date < today;
   const needsReview = isPast && !trip.hindsight_completed && trip.generation_status === "complete";
@@ -37,13 +38,31 @@ export function TripCard({ trip }: TripCardProps) {
             </p>
           </div>
           <div className="flex flex-col items-end gap-2 shrink-0">
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                statusColors[trip.generation_status] ?? statusColors.pending
-              }`}
-            >
-              {trip.generation_status === "complete" ? "Ready" : trip.generation_status}
-            </span>
+            <div className="flex items-center gap-1.5">
+              {onCopy && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onCopy(trip);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                  aria-label="Copy trip"
+                  title="Copy trip"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                  </svg>
+                </button>
+              )}
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  statusColors[trip.generation_status] ?? statusColors.pending
+                }`}
+              >
+                {trip.generation_status === "complete" ? "Ready" : trip.generation_status}
+              </span>
+            </div>
             {needsReview && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                 Review trip

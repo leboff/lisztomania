@@ -79,5 +79,7 @@ async def submit_hindsight(
     _check_trip_access(trip_id, current_user["id"], db)
     if body.unused_item_ids:
         db.table("checklist_items").update({"was_unused": True}).in_("id", body.unused_item_ids).execute()
+    if body.wished_for_item_ids:
+        db.table("checklist_items").update({"was_wished_for": True}).in_("id", body.wished_for_item_ids).execute()
     db.table("trips").update({"hindsight_completed": True}).eq("id", trip_id).execute()
     return {"status": "ok"}

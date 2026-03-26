@@ -16,6 +16,7 @@ class ChecklistItemCreate(BaseModel):
     sort_order: int | None = None
     quantity: int | None = None
     reasoning: str | None = None
+    was_wished_for: bool = False
 
 
 class ChecklistItemUpdate(BaseModel):
@@ -26,6 +27,7 @@ class ChecklistItemUpdate(BaseModel):
     bag_id: str | None = None
     is_checked: bool | None = None
     was_unused: bool | None = None
+    was_wished_for: bool | None = None
     sort_order: int | None = None
     quantity: int | None = None
     reasoning: str | None = None
@@ -41,6 +43,7 @@ class ChecklistItemResponse(BaseModel):
     bag_id: str | None = None
     is_checked: bool
     was_unused: bool
+    was_wished_for: bool = False
     source: str
     sort_order: int | None = None
     quantity: int | None = None
@@ -50,4 +53,5 @@ class ChecklistItemResponse(BaseModel):
 
 
 class HindsightUpdate(BaseModel):
-    unused_item_ids: list[str]
+    unused_item_ids: list[str] = []
+    wished_for_item_ids: list[str] = []
