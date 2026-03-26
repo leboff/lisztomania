@@ -5,11 +5,18 @@ import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/dashboard/TripCard";
 import { CopyTripSheet } from "@/components/dashboard/CopyTripSheet";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { tripsService } from "@/services/trips.service";
 import type { Trip } from "@/types";
 
 export default function DashboardPage() {
-  const { trips, isLoading } = useTrips();
+  const { trips, isLoading, mutate } = useTrips();
   const [copyTarget, setCopyTarget] = useState<Trip | null>(null);
+
+  const handleDelete = async (trip: Trip) => {
+    if (!confirm(`Delete "${trip.name || trip.destination}"?`)) return;
+    await tripsService.delete(trip.id);
+    mutate();
+  };
 
   return (
     <div>
@@ -54,7 +61,7 @@ export default function DashboardPage() {
         )}
 
         {!isLoading && trips.map((trip) => (
-          <TripCard key={trip.id} trip={trip} onCopy={setCopyTarget} />
+          <TripCard key={trip.id} trip={trip} onCopy={setCopyTarget} onDelete={handleDelete} />
         ))}
       </div>
 
