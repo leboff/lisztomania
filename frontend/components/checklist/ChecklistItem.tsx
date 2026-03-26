@@ -16,6 +16,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
   const [swipeX, setSwipeX] = useState(0);
   const [saved, setSaved] = useState(false);
   const startX = useRef(0);
+  const startSwipeX = useRef(0);
   const bag = bags.find((b) => b.id === item.bag_id);
   const profile = profiles.find((p) => p.id === item.assigned_profile_id);
 
@@ -24,11 +25,13 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
+    startSwipeX.current = swipeX;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const diff = e.touches[0].clientX - startX.current;
-    if (diff < 0) setSwipeX(Math.max(diff, -revealWidth));
+    const newX = startSwipeX.current + diff;
+    setSwipeX(Math.min(0, Math.max(newX, -revealWidth)));
   };
 
   const handleTouchEnd = () => {
@@ -86,7 +89,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
       </div>
 
       <div
-        className={`relative flex items-center gap-3 bg-white py-3 px-4 transition-transform ${
+        className={`relative flex items-center gap-3 bg-white dark:bg-gray-900 py-3 px-4 transition-transform ${
           item.is_checked ? "opacity-60" : ""
         }`}
         style={{ transform: `translateX(${swipeX}px)` }}
@@ -104,7 +107,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
             className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors ${
               item.is_checked
                 ? "border-indigo-500 bg-indigo-500"
-                : "border-gray-300"
+                : "border-gray-300 dark:border-gray-600"
             }`}
           >
             {item.is_checked && (
@@ -117,17 +120,17 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
 
         <div className="flex-1 min-w-0">
           <p
-            className={`text-sm font-medium text-gray-900 ${
-              item.is_checked ? "line-through text-gray-400" : ""
+            className={`text-sm font-medium text-gray-900 dark:text-gray-100 ${
+              item.is_checked ? "line-through text-gray-400 dark:text-gray-500" : ""
             }`}
           >
             {item.quantity != null && (
-              <span className="text-gray-400 font-normal mr-1">{item.quantity}×</span>
+              <span className="text-gray-400 dark:text-gray-500 font-normal mr-1">{item.quantity}×</span>
             )}
             {item.item_name}
           </p>
           {item.category && (
-            <p className="text-xs text-gray-400 mt-0.5">{item.category}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.category}</p>
           )}
         </div>
 
@@ -138,12 +141,12 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
             className="shrink-0 flex items-center gap-1 max-w-[45%]"
           >
             {bag && (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600 font-medium truncate max-w-[120px]">
+              <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-xs text-blue-600 dark:text-blue-400 font-medium truncate max-w-[120px]">
                 {bag.name}
               </span>
             )}
             {profile && (
-              <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs text-violet-600 font-medium truncate max-w-[60px]">
+              <span className="rounded-full bg-violet-50 dark:bg-violet-900/30 px-2 py-0.5 text-xs text-violet-600 dark:text-violet-400 font-medium truncate max-w-[60px]">
                 {profile.name}
               </span>
             )}
