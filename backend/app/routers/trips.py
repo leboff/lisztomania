@@ -127,7 +127,8 @@ async def copy_trip(
     new_trip_data["start_date"] = str(body.start_date)
     new_trip_data["end_date"] = str(body.end_date)
     new_trip_data["template_trip_id"] = trip_id
-    new_trip_data["generation_status"] = "pending"
+    # When copying the checklist, mark complete immediately so the trip page shows items
+    new_trip_data["generation_status"] = "complete" if body.copy_checklist else "pending"
     new_trip_data["hindsight_completed"] = False
     new_trip_data["collaborator_ids"] = []
 
@@ -176,8 +177,6 @@ async def copy_trip(
                     "was_wished_for": False,
                 })
             db.table("checklist_items").insert(item_rows).execute()
-        db.table("trips").update({"generation_status": "complete"}).eq("id", new_trip_id).execute()
-        new_trip["generation_status"] = "complete"
 
     return _enrich_trip(new_trip, db)
 
