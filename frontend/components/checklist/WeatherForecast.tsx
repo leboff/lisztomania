@@ -64,7 +64,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
   }
 
   return (
-    <div className={compact ? "" : "mx-4 mt-3"}>
+    <div className={compact ? "" : "mx-4 my-4"}>
       <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/40 dark:to-indigo-950/40 p-4">
         {/* Header */}
         <div className="flex items-center gap-1.5 mb-3">
