@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { TabSwitcher } from "@/components/ui/TabSwitcher";
 import type { Bag, Profile, LibraryItem } from "@/types";
 
 const CATEGORIES = [
@@ -86,24 +87,15 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
           <h3 className="mb-3 text-base font-semibold text-gray-900 dark:text-gray-100">Add item</h3>
 
           {libraryItems && libraryItems.length > 0 && (
-            <div className="mb-4 flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
-              <button
-                onClick={() => setMode("new")}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "new" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                New Item
-              </button>
-              <button
-                onClick={() => setMode("library")}
-                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "library" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                From Library
-              </button>
-            </div>
+            <TabSwitcher
+              tabs={[
+                { value: "new", label: "New Item" },
+                { value: "library", label: "From Library" },
+              ]}
+              value={mode}
+              onChange={setMode}
+              className="mb-4"
+            />
           )}
 
           {mode === "library" ? (

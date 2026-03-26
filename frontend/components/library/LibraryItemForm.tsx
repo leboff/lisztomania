@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { libraryService } from "@/services/library.service";
 import { useProfiles } from "@/hooks/useProfiles";
+import { TabSwitcher } from "@/components/ui/TabSwitcher";
 import type { LibraryItem } from "@/types";
 
 const WEATHER_TAGS = ["any", "cold", "warm", "rain", "snow"];
@@ -54,26 +55,15 @@ export function LibraryItemForm({ item, onSave, onCancel, defaultItemType }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
-        <button
-          type="button"
-          onClick={() => setItemType("packing")}
-          className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-            itemType === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-          }`}
-        >
-          Packing Item
-        </button>
-        <button
-          type="button"
-          onClick={() => setItemType("task")}
-          className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-            itemType === "task" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-          }`}
-        >
-          Task Template
-        </button>
-      </div>
+      <TabSwitcher
+        tabs={[
+          { value: "packing", label: "Packing Item" },
+          { value: "task", label: "Task Template" },
+        ]}
+        value={itemType}
+        onChange={setItemType}
+        size="sm"
+      />
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">

@@ -4,6 +4,7 @@ import { useLibrary } from "@/hooks/useLibrary";
 import { libraryService } from "@/services/library.service";
 import { LibraryItemForm } from "@/components/library/LibraryItemForm";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TabSwitcher } from "@/components/ui/TabSwitcher";
 import type { LibraryItem } from "@/types";
 
 export default function LibraryPage() {
@@ -35,24 +36,14 @@ export default function LibraryPage() {
       />
 
       <div className="px-4 pt-2">
-        <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
-          <button
-            onClick={() => setTab("packing")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-             Packing Items
-          </button>
-          <button
-            onClick={() => setTab("task")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "task" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-             Task Templates
-          </button>
-        </div>
+        <TabSwitcher
+          tabs={[
+            { value: "packing", label: "Packing Items" },
+            { value: "task", label: "Task Templates" },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
       </div>
 
       <div className="px-4 py-4 space-y-2">

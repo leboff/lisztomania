@@ -11,6 +11,7 @@ import { ViewToggle } from "./ViewToggle";
 import { ProgressDashboard } from "./ProgressDashboard";
 import { ItemReassignSheet } from "./ItemReassignSheet";
 import { AddItemSheet } from "./AddItemSheet";
+import { TabSwitcher } from "@/components/ui/TabSwitcher";
 import { useUIStore } from "@/store/uiStore";
 import type { Bag, Profile, ChecklistItem, ChecklistView as ViewType } from "@/types";
 
@@ -144,24 +145,14 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
   return (
     <div>
       <div className="bg-white dark:bg-gray-900 px-4 pt-4 sticky top-0 z-40">
-        <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
-          <button
-            onClick={() => setTab("packing")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            Packing List
-          </button>
-          <button
-            onClick={() => setTab("tasks")}
-            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "tasks" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}
-          >
-            Pre-Trip Tasks
-          </button>
-        </div>
+        <TabSwitcher
+          tabs={[
+            { value: "packing", label: "Packing List" },
+            { value: "tasks", label: "Pre-Trip Tasks" },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
       </div>
 
       <ProgressDashboard
