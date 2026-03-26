@@ -71,19 +71,19 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Name *</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
           placeholder="e.g. Lake House, Grandma's, Marriott"
         />
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Type</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
         <div className="grid grid-cols-2 gap-2">
           {ACCOMMODATION_TYPES.map((t) => (
             <button
@@ -91,7 +91,7 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
               type="button"
               onClick={() => setType(t.value)}
               className={`rounded-lg py-2 text-sm ${
-                type === t.value ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600"
+                type === t.value ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
               }`}
             >
               {t.label}
@@ -101,7 +101,7 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">Sleeping Rooms</label>
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Sleeping Rooms</label>
         <div className="space-y-2">
           {rooms.map((room, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -109,7 +109,7 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
                 type="text"
                 value={room}
                 onChange={(e) => updateRoom(index, e.target.value)}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 placeholder={`e.g. ${index === 0 ? "Master Bedroom" : index === 1 ? "Kids Room" : `Room ${index + 1}`}`}
               />
               {rooms.length > 1 && (
@@ -139,12 +139,12 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none"
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none"
           placeholder="e.g. Pool access, kitchen available, bring beach towels…"
         />
       </div>
@@ -155,7 +155,7 @@ export function AccommodationForm({ accommodation, onSave, onCancel }: Props) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600"
+          className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 py-3 text-sm font-medium text-gray-600 dark:text-gray-300"
         >
           Cancel
         </button>

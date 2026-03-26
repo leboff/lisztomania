@@ -20,8 +20,8 @@ export function StepGenerating({ tripId }: Props) {
         <span className="absolute inset-0 flex items-center justify-center text-2xl">✨</span>
       </div>
 
-      <h2 className="text-xl font-bold text-gray-900">Building your list</h2>
-      <p className="mt-2 text-sm text-gray-400">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Building your list</h2>
+      <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
         Our AI is crafting a personalized packing list for your trip.
       </p>
 
@@ -29,17 +29,17 @@ export function StepGenerating({ tripId }: Props) {
         {MESSAGES.map((msg, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-2 text-left"
+            className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-gray-800 px-4 py-2 text-left"
             style={{ animationDelay: `${i * 0.5}s` }}
           >
             <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            <span className="text-xs text-gray-500">{msg}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{msg}</span>
           </div>
         ))}
       </div>
 
       {tripId && (
-        <p className="mt-8 text-xs text-gray-300">Trip ID: {tripId}</p>
+        <p className="mt-8 text-xs text-gray-300 dark:text-gray-600">Trip ID: {tripId}</p>
       )}
     </div>
   );

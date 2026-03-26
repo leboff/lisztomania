@@ -21,21 +21,21 @@ export function StepTravelerSelect({ data, onUpdate, onNext, onBack }: Props) {
 
   return (
     <div className="flex flex-1 flex-col px-4 py-6">
-      <button onClick={onBack} className="mb-6 flex items-center gap-1 text-sm text-gray-400">
+      <button onClick={onBack} className="mb-6 flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
         Back
       </button>
 
-      <h2 className="mb-1 text-2xl font-bold text-gray-900">Who&apos;s traveling?</h2>
-      <p className="mb-6 text-sm text-gray-400">Step 2 of 5</p>
+      <h2 className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">Who&apos;s traveling?</h2>
+      <p className="mb-6 text-sm text-gray-400 dark:text-gray-500">Step 2 of 5</p>
 
-      {isLoading && <div className="h-16 rounded-xl bg-gray-100 animate-pulse" />}
+      {isLoading && <div className="h-16 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />}
 
       {!isLoading && profiles.length === 0 && (
-        <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
-          <p className="text-sm text-gray-500">No traveler profiles yet.</p>
+        <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">No traveler profiles yet.</p>
           <Link href="/profiles" className="mt-2 inline-block text-sm font-medium text-indigo-600">
             Create a profile →
           </Link>
@@ -51,21 +51,21 @@ export function StepTravelerSelect({ data, onUpdate, onNext, onBack }: Props) {
               onClick={() => toggle(profile.id)}
               className={`flex w-full items-center gap-3 rounded-xl border p-4 transition-colors text-left ${
                 isSelected
-                  ? "border-indigo-300 bg-indigo-50"
-                  : "border-gray-100 bg-white hover:bg-gray-50"
+                  ? "border-indigo-300 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-900/20"
+                  : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               <div
                 className={`flex h-10 w-10 items-center justify-center rounded-full text-lg font-semibold ${
-                  isSelected ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600"
+                  isSelected ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                 }`}
               >
                 {profile.name[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">{profile.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{profile.name}</p>
                 {profile.relationship && (
-                  <p className="text-xs text-gray-400 capitalize">{profile.relationship}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 capitalize">{profile.relationship}</p>
                 )}
               </div>
               {isSelected && (

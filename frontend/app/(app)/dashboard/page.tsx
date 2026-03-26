@@ -32,7 +32,7 @@ export default function DashboardPage() {
         {isLoading && (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-24 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ))}
           </div>
         )}
@@ -40,8 +40,8 @@ export default function DashboardPage() {
         {!isLoading && trips.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 text-5xl">🧳</div>
-            <h2 className="text-lg font-semibold text-gray-700">No trips yet</h2>
-            <p className="mt-1 text-sm text-gray-400">
+            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">No trips yet</h2>
+            <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
               Tap + to create your first AI-powered packing list
             </p>
             <Link

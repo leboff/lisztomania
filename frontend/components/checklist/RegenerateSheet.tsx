@@ -48,14 +48,14 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-[70] flex max-h-[85vh] flex-col rounded-t-2xl bg-white pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] flex max-h-[85vh] flex-col rounded-t-2xl bg-white dark:bg-gray-900 pb-safe">
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
-          <h3 className="mb-4 text-base font-semibold text-gray-900">Regenerate list</h3>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+          <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-gray-100">Regenerate list</h3>
 
           {/* Activities / Events */}
           <div className="mb-4">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
               Activities &amp; events
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -66,7 +66,7 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
                   className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                     events.includes(event)
                       ? "bg-indigo-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
                 >
                   {event}
@@ -95,12 +95,12 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
                 onChange={(e) => setCustomEvent(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addCustomEvent()}
                 placeholder="Add custom activity..."
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               />
               <button
                 onClick={addCustomEvent}
                 disabled={!customEvent.trim()}
-                className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-40"
+                className="rounded-xl bg-gray-100 dark:bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
               >
                 Add
               </button>
@@ -111,17 +111,17 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
           <div className="mb-4">
             <button
               onClick={() => setRefreshWeather((v) => !v)}
-              className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3"
+              className="flex w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
             >
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-700">Refresh weather</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Refresh weather</p>
                 {trip.weather_summary && (
-                  <p className="mt-0.5 text-xs text-gray-400">{trip.weather_summary}</p>
+                  <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{trip.weather_summary}</p>
                 )}
               </div>
               <div
                 className={`flex h-6 w-11 items-center rounded-full transition-colors ${
-                  refreshWeather ? "bg-indigo-500" : "bg-gray-200"
+                  refreshWeather ? "bg-indigo-500" : "bg-gray-200 dark:bg-gray-600"
                 }`}
               >
                 <div
@@ -133,12 +133,12 @@ export function RegenerateSheet({ open, onClose, trip, onRegenerate }: Props) {
             </button>
           </div>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Manually added items will be kept. Only AI-generated items will be replaced.
           </p>
         </div>
 
-        <div className="border-t border-gray-100 px-4 py-3">
+        <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-3">
           <button
             onClick={handleRegenerate}
             disabled={submitting}

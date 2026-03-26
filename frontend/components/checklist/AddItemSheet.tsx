@@ -80,17 +80,17 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white dark:bg-gray-900 pb-safe">
         <div className="px-4 py-3">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
-          <h3 className="mb-3 text-base font-semibold text-gray-900">Add item</h3>
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+          <h3 className="mb-3 text-base font-semibold text-gray-900 dark:text-gray-100">Add item</h3>
 
           {libraryItems && libraryItems.length > 0 && (
-            <div className="mb-4 flex rounded-xl bg-gray-100 p-1">
+            <div className="mb-4 flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
               <button
                 onClick={() => setMode("new")}
                 className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "new" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500"
+                  mode === "new" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 New Item
@@ -98,7 +98,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
               <button
                 onClick={() => setMode("library")}
                 className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                  mode === "library" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500"
+                  mode === "library" ? "bg-white dark:bg-gray-700 text-indigo-600 shadow-sm" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 From Library
@@ -109,26 +109,26 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
           {mode === "library" ? (
             <div className="max-h-72 overflow-y-auto space-y-2">
               {relevantLibraryItems.length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-400">No library items for this type.</p>
+                <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">No library items for this type.</p>
               ) : (
                 relevantLibraryItems.map((li) => (
                   <button
                     key={li.id}
                     onClick={() => handleAddFromLibrary(li)}
                     disabled={saving}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 text-left hover:bg-indigo-50 hover:border-indigo-200 disabled:opacity-40"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-800 disabled:opacity-40"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{li.name}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{li.name}</p>
                       <div className="mt-0.5 flex flex-wrap gap-1">
                         {li.always_pack && (
-                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">Always</span>
+                          <span className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Always</span>
                         )}
                         {li.item_type === "packing" && li.weather_tag && li.weather_tag !== "any" && (
-                          <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-600">{li.weather_tag}</span>
+                          <span className="rounded-full bg-sky-50 dark:bg-sky-900/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">{li.weather_tag}</span>
                         )}
                         {li.trip_type_tag && li.trip_type_tag !== "any" && (
-                          <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-600">{li.trip_type_tag.replace("_", " ")}</span>
+                          <span className="rounded-full bg-violet-50 dark:bg-violet-900/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">{li.trip_type_tag.replace("_", " ")}</span>
                         )}
                       </div>
                     </div>
@@ -148,7 +148,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Item name"
                   autoFocus
-                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 />
                 <input
                   type="number"
@@ -156,14 +156,14 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Qty"
                   min="1"
-                  className="w-20 rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-20 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-3 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
 
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
               >
                 <option value="">Category (optional)</option>
                 {CATEGORIES.map((c) => (
@@ -175,7 +175,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
                 <select
                   value={bagId}
                   onChange={(e) => setBagId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                 >
                   <option value="">Bag (optional)</option>
                   {bags.map((b) => (
@@ -188,7 +188,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
                 <select
                   value={profileId}
                   onChange={(e) => setProfileId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                 >
                   <option value="">Person (optional)</option>
                   {profiles.map((p) => (

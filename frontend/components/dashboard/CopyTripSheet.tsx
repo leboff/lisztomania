@@ -37,43 +37,43 @@ export function CopyTripSheet({ trip, onClose }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-2xl bg-white dark:bg-gray-900 pb-safe">
         <div className="px-4 py-5">
-          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
-          <h3 className="mb-1 text-base font-semibold text-gray-900">Copy trip</h3>
-          <p className="mb-5 text-sm text-gray-500">
+          <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+          <h3 className="mb-1 text-base font-semibold text-gray-900 dark:text-gray-100">Copy trip</h3>
+          <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
             {trip.name || trip.destination} — same travelers, bags, and settings.
           </p>
 
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-gray-600">Start date</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">Start date</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-gray-600">End date</label>
+              <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">End date</label>
               <input
                 type="date"
                 value={endDate}
                 min={startDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
           </div>
 
           <button
             onClick={() => setCopyChecklist((v) => !v)}
-            className="mb-5 flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3"
+            className="mb-5 flex w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
           >
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-700">Copy checklist as-is</p>
-              <p className="mt-0.5 text-xs text-gray-400">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Copy checklist as-is</p>
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
                 {copyChecklist
                   ? "Items from the previous trip will be copied over"
                   : "AI will generate a fresh list for the new dates"}
@@ -81,7 +81,7 @@ export function CopyTripSheet({ trip, onClose }: Props) {
             </div>
             <div
               className={`flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                copyChecklist ? "bg-indigo-500" : "bg-gray-200"
+                copyChecklist ? "bg-indigo-500" : "bg-gray-200 dark:bg-gray-600"
               }`}
             >
               <div
