@@ -138,7 +138,7 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             </button>
 
             {overflowOpen && (
-              <div className="fixed right-4 top-[60px] w-52 rounded-2xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 py-1 z-50">
+              <div className="fixed right-4 top-[60px] w-52 rounded-2xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 py-1 z-[9999]">
                 {trip.generation_status === "complete" && (
                   <Link
                     href={`/trips/${trip.id}/hindsight`}
