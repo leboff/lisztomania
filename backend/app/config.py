@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     # https://api.groq.com/openai/v1 for Groq). Leave empty to use the default OpenAI endpoint.
     llm_base_url: str = ""
     llm_model: str = "gpt-4o-mini"
+    # Chat model settings — leave empty to fall back to generation model settings above
+    chat_openai_api_key: str = ""
+    chat_llm_base_url: str = ""
+    chat_llm_model: str = ""
     pirate_weather_api_key: str = ""
     frontend_url: str = "http://localhost:3000"
 

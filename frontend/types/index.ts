@@ -127,3 +127,12 @@ export interface ChecklistItem {
 }
 
 export type ChecklistView = "bag" | "person" | "category" | "timing";
+
+export interface ChatMessage {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
