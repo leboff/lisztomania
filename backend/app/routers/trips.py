@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.dependencies import get_current_user
 from app.schemas.trip import TripCreate, TripUpdate, TripResponse, CollaboratorInvite, TripCopyOptions
+from app.schemas.profile import ProfileResponse
 from app.services.supabase_client import get_supabase
 from app.utils.exceptions import NotFoundError, ForbiddenError
 
@@ -59,6 +60,21 @@ async def create_trip(body: TripCreate, current_user: dict = Depends(get_current
         db.table("trip_profiles").insert(tp_rows).execute()
 
     return _enrich_trip(trip, db)
+
+
+@router.get("/{trip_id}/profiles", response_model=list[ProfileResponse])
+async def list_trip_profiles(trip_id: str, current_user: dict = Depends(get_current_user)):
+    db = get_supabase()
+    trip = db.table("trips").select("user_id,collaborator_ids").eq("id", trip_id).single().execute()
+    if not trip.data:
+        raise NotFoundError("Trip not found")
+    _check_trip_access(trip.data, current_user["id"])
+    tp = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
+    profile_ids = [r["profile_id"] for r in (tp.data or [])]
+    if not profile_ids:
+        return []
+    profiles = db.table("profiles").select("*, profile_bags(*)").in_("id", profile_ids).execute()
+    return profiles.data or []
 
 
 @router.get("/{trip_id}", response_model=TripResponse)

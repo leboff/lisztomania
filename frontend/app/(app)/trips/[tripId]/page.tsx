@@ -2,7 +2,6 @@
 import { use, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTrip } from "@/hooks/useTrips";
-import { useProfiles } from "@/hooks/useProfiles";
 import { ChecklistView } from "@/components/checklist/ChecklistView";
 import { RegenerateSheet } from "@/components/checklist/RegenerateSheet";
 import { WeatherForecast } from "@/components/checklist/WeatherForecast";
@@ -14,7 +13,8 @@ import { CollaborateSheet } from "@/components/checklist/CollaborateSheet";
 import { WishedForSheet } from "@/components/checklist/WishedForSheet";
 import { TripChatSheet } from "@/components/chat/TripChatSheet";
 import useSWR from "swr";
-import type { Bag } from "@/types";
+import type { Bag, Profile } from "@/types";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatLocation } from "@/lib/location";
@@ -22,10 +22,13 @@ import { formatLocation } from "@/lib/location";
 export default function TripChecklistPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params);
   const { trip, isLoading, mutate } = useTrip(tripId);
-  const { profiles } = useProfiles();
   const { data: bags, mutate: mutateBags } = useSWR<Bag[]>(
     tripId ? `/trips/${tripId}/bags` : null,
     () => apiClient.get<Bag[]>(`/trips/${tripId}/bags`)
+  );
+  const { data: tripProfiles = [] } = useSWR<Profile[]>(
+    tripId ? `/trips/${tripId}/profiles` : null,
+    () => apiClient.get<Profile[]>(`/trips/${tripId}/profiles`)
   );
   const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [manageBagsOpen, setManageBagsOpen] = useState(false);
@@ -58,8 +61,6 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [overflowOpen]);
-
-  const tripProfiles = profiles.filter((p) => trip?.profile_ids?.includes(p.id) ?? false);
 
   const handleRegenerate = async (opts: { trip_events: string[]; refreshWeather: boolean }) => {
     if (!trip) return;
