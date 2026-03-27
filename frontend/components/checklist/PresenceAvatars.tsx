@@ -1,4 +1,5 @@
 "use client";
+import { AnimatePresence, motion } from "framer-motion";
 import type { PresenceUser } from "@/hooks/useTripPresence";
 
 const COLORS = [
@@ -46,23 +47,36 @@ export function PresenceAvatars({ viewers, currentUserId }: Props) {
 
   return (
     <div className="flex items-center -space-x-2" title={ordered.map((v) => v.name ?? v.email).join(", ")}>
-      {visible.map((user) => (
-        <div
-          key={user.userId}
-          className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900 text-white text-[10px] font-semibold ${getColor(user.userId)}`}
-          title={user.name ?? user.email}
-        >
-          {getInitials(user)}
-          {user.userId !== currentUserId && (
-            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-green-400 ring-1 ring-white dark:ring-gray-900" />
-          )}
-        </div>
-      ))}
-      {overflow > 0 && (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-semibold">
-          +{overflow}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {visible.map((user) => (
+          <motion.div
+            key={user.userId}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900 text-white text-[10px] font-semibold ${getColor(user.userId)}`}
+            title={user.name ?? user.email}
+          >
+            {getInitials(user)}
+            {user.userId !== currentUserId && (
+              <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-green-400 ring-1 ring-white dark:ring-gray-900" />
+            )}
+          </motion.div>
+        ))}
+        {overflow > 0 && (
+          <motion.div
+            key="overflow"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full ring-2 ring-white dark:ring-gray-900 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-semibold"
+          >
+            +{overflow}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
