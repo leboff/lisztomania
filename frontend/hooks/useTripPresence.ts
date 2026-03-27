@@ -9,40 +9,52 @@ export interface PresenceUser {
   onlineAt: string;
 }
 
-export function useTripPresence(tripId: string | null, currentUserId: string | null, currentUserEmail: string | null, currentUserName: string | null) {
+export function useTripPresence(tripId: string | null) {
   const [viewers, setViewers] = useState<PresenceUser[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!tripId || !currentUserId || !currentUserEmail) return;
+    if (!tripId) return;
 
     const supabase = getSupabaseClient();
-    const channel = supabase.channel(`presence:${tripId}`, {
-      config: { presence: { key: currentUserId } },
-    });
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<Omit<PresenceUser, "userId">>();
-        const users: PresenceUser[] = Object.entries(state).map(([userId, presences]) => ({
-          userId,
-          ...(presences[0] as Omit<PresenceUser, "userId">),
-        }));
-        setViewers(users);
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({
-            name: currentUserName,
-            email: currentUserEmail,
-            onlineAt: new Date().toISOString(),
-          });
-        }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
+
+      const { id, email, user_metadata } = session.user;
+      const name = user_metadata?.full_name ?? user_metadata?.name ?? null;
+
+      setCurrentUserId(id);
+
+      channel = supabase.channel(`presence:${tripId}`, {
+        config: { presence: { key: id } },
       });
 
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [tripId, currentUserId, currentUserEmail, currentUserName]);
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel!.presenceState<Omit<PresenceUser, "userId">>();
+          const users: PresenceUser[] = Object.entries(state).map(([userId, presences]) => ({
+            userId,
+            ...(presences[0] as Omit<PresenceUser, "userId">),
+          }));
+          setViewers(users);
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED") {
+            await channel!.track({
+              name,
+              email: email ?? "",
+              onlineAt: new Date().toISOString(),
+            });
+          }
+        });
+    });
 
-  return viewers;
+    return () => {
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [tripId]);
+
+  return { viewers, currentUserId };
 }
