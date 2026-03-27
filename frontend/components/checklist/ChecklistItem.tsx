@@ -10,11 +10,13 @@ interface Props {
   onDelete: (id: string) => void;
   onReassign: (id: string) => void;
   onSaveToLibrary?: (id: string) => void;
+  onUpdateQuantity?: (id: string, qty: number) => void;
 }
 
-export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReassign, onSaveToLibrary }: Props) {
+export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReassign, onSaveToLibrary, onUpdateQuantity }: Props) {
   const [swipeX, setSwipeX] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [qtyEditing, setQtyEditing] = useState(false);
   const startX = useRef(0);
   const startSwipeX = useRef(0);
   const bag = bags.find((b) => b.id === item.bag_id);
@@ -26,6 +28,7 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     startSwipeX.current = swipeX;
+    if (qtyEditing) setQtyEditing(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -122,8 +125,52 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
               item.is_checked ? "line-through text-gray-400 dark:text-gray-500" : ""
             }`}
           >
-            {item.quantity != null && (
+            {item.quantity != null && !qtyEditing && onUpdateQuantity && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setQtyEditing(true); }}
+                className="text-gray-400 dark:text-gray-500 font-normal mr-1 hover:text-indigo-500 dark:hover:text-indigo-400"
+                aria-label="Adjust quantity"
+              >
+                {item.quantity}×
+              </button>
+            )}
+            {item.quantity != null && !onUpdateQuantity && (
               <span className="text-gray-400 dark:text-gray-500 font-normal mr-1">{item.quantity}×</span>
+            )}
+            {qtyEditing && onUpdateQuantity && (
+              <span
+                className="inline-flex items-center gap-1 mr-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => {
+                    const cur = item.quantity ?? 1;
+                    const next = Math.max(1, cur - 1);
+                    onUpdateQuantity(item.id, next);
+                  }}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <span className="text-indigo-500 dark:text-indigo-400 font-semibold min-w-[1.25rem] text-center text-xs">
+                  {item.quantity ?? 1}
+                </span>
+                <button
+                  onClick={() => onUpdateQuantity(item.id, (item.quantity ?? 1) + 1)}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+                <button
+                  onClick={() => setQtyEditing(false)}
+                  className="text-gray-400 dark:text-gray-500 text-xs ml-0.5"
+                  aria-label="Done"
+                >
+                  ✓
+                </button>
+              </span>
             )}
             {item.item_name}
           </p>
@@ -131,6 +178,19 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.category}</p>
           )}
         </div>
+
+        {/* Quantity set button for items without quantity */}
+        {item.quantity == null && onUpdateQuantity && !qtyEditing && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onUpdateQuantity(item.id, 1); setQtyEditing(true); }}
+            className={`shrink-0 flex items-center justify-center h-6 w-6 rounded-full text-gray-300 dark:text-gray-600 hover:text-indigo-400 dark:hover:text-indigo-500${item.is_checked ? " opacity-60" : ""}`}
+            aria-label="Set quantity"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h13.5M5.25 15.75h13.5M8.25 3l-3 18M15.75 3l-3 18" />
+            </svg>
+          </button>
+        )}
 
         {/* Bag / profile badge — tap to reassign */}
         {(bag || profile) && (

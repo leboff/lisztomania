@@ -12,6 +12,7 @@ interface Props {
   onDelete: (id: string) => void;
   onReassign: (id: string) => void;
   onSaveToLibrary?: (id: string) => void;
+  onUpdateQuantity?: (id: string, qty: number) => void;
 }
 
 export function ChecklistSection({
@@ -23,6 +24,7 @@ export function ChecklistSection({
   onDelete,
   onReassign,
   onSaveToLibrary,
+  onUpdateQuantity,
 }: Props) {
   const [open, setOpen] = useState(true);
   const checkedCount = items.filter((i) => i.is_checked).length;
@@ -64,6 +66,7 @@ export function ChecklistSection({
               onDelete={onDelete}
               onReassign={onReassign}
               onSaveToLibrary={onSaveToLibrary}
+              onUpdateQuantity={onUpdateQuantity}
             />
           ))}
         </div>

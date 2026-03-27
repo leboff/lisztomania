@@ -90,7 +90,7 @@ function groupItems(
 
 export function ChecklistView({ tripId, bags, profiles }: Props) {
   const { items, loading, setItems, refresh } = useTripChecklist(tripId);
-  const { toggleItem, reassignItem, deleteItem } = useOptimisticChecklist({ items, setItems });
+  const { toggleItem, reassignItem, deleteItem, updateQuantity } = useOptimisticChecklist({ items, setItems });
   const { items: libraryItems, mutate: mutateLibrary } = useLibrary();
   
   const { 
@@ -187,6 +187,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
             onDelete={deleteItem}
             onReassign={setReassignItemId}
             onSaveToLibrary={handleSaveToLibrary}
+            onUpdateQuantity={updateQuantity}
           />
         ))}
 
