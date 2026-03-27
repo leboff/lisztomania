@@ -28,7 +28,8 @@ export function ProgressRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#e5e7eb"
+            stroke="currentColor"
+            className="text-gray-200 dark:text-gray-700"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -36,7 +37,8 @@ export function ProgressRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#6366f1"
+            stroke="currentColor"
+            className="text-indigo-500"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -45,13 +47,13 @@ export function ProgressRing({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-semibold text-gray-700">{percent}%</span>
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{percent}%</span>
         </div>
       </div>
       {label && (
         <div className="text-center">
-          <p className="text-xs font-medium text-gray-700 max-w-[4rem] truncate">{label}</p>
-          {sublabel && <p className="text-xs text-gray-400">{sublabel}</p>}
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-200 max-w-[4rem] truncate">{label}</p>
+          {sublabel && <p className="text-xs text-gray-400 dark:text-gray-500">{sublabel}</p>}
         </div>
       )}
     </div>

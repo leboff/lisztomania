@@ -11,6 +11,7 @@ interface Props {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onReassign: (id: string) => void;
+  onSaveToLibrary?: (id: string) => void;
 }
 
 export function ChecklistSection({
@@ -21,6 +22,7 @@ export function ChecklistSection({
   onToggle,
   onDelete,
   onReassign,
+  onSaveToLibrary,
 }: Props) {
   const [open, setOpen] = useState(true);
   const checkedCount = items.filter((i) => i.is_checked).length;
@@ -31,15 +33,15 @@ export function ChecklistSection({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between px-4 py-2 text-left"
       >
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           {title}
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 dark:text-gray-500">
             {checkedCount}/{items.length}
           </span>
           <svg
-            className={`h-4 w-4 text-gray-400 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
+            className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
             fill="none"
             stroke="currentColor"
             strokeWidth={1.5}
@@ -51,7 +53,7 @@ export function ChecklistSection({
       </button>
 
       {open && (
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-50 dark:divide-gray-800">
           {items.map((item) => (
             <ChecklistItem
               key={item.id}
@@ -61,6 +63,7 @@ export function ChecklistSection({
               onToggle={onToggle}
               onDelete={onDelete}
               onReassign={onReassign}
+              onSaveToLibrary={onSaveToLibrary}
             />
           ))}
         </div>

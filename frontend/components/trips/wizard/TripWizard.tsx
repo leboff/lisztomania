@@ -111,7 +111,7 @@ export function TripWizard() {
     <div className="flex min-h-screen flex-col">
       {/* Progress bar */}
       {step < 6 && (
-        <div className="h-1 bg-gray-100">
+        <div className="h-1 bg-gray-100 dark:bg-gray-800">
           <div
             className="h-1 bg-indigo-500 transition-all duration-300"
             style={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}

@@ -1,11 +1,22 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/dashboard/TripCard";
+import { CopyTripSheet } from "@/components/dashboard/CopyTripSheet";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { tripsService } from "@/services/trips.service";
+import type { Trip } from "@/types";
 
 export default function DashboardPage() {
-  const { trips, isLoading } = useTrips();
+  const { trips, isLoading, mutate } = useTrips();
+  const [copyTarget, setCopyTarget] = useState<Trip | null>(null);
+
+  const handleDelete = async (trip: Trip) => {
+    if (!confirm(`Delete "${trip.name || trip.destination}"?`)) return;
+    await tripsService.delete(trip.id);
+    mutate();
+  };
 
   return (
     <div>
@@ -28,7 +39,7 @@ export default function DashboardPage() {
         {isLoading && (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-24 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ))}
           </div>
         )}
@@ -36,8 +47,8 @@ export default function DashboardPage() {
         {!isLoading && trips.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 text-5xl">🧳</div>
-            <h2 className="text-lg font-semibold text-gray-700">No trips yet</h2>
-            <p className="mt-1 text-sm text-gray-400">
+            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">No trips yet</h2>
+            <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
               Tap + to create your first AI-powered packing list
             </p>
             <Link
@@ -49,8 +60,12 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {!isLoading && trips.map((trip) => <TripCard key={trip.id} trip={trip} />)}
+        {!isLoading && trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} onCopy={setCopyTarget} onDelete={handleDelete} />
+        ))}
       </div>
+
+      <CopyTripSheet trip={copyTarget} onClose={() => setCopyTarget(null)} />
     </div>
   );
 }

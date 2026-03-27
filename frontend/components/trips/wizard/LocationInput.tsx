@@ -51,7 +51,8 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
   };
 
   const select = (loc: any) => {
-    const full = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}${loc.country ? `, ${loc.country}` : ""}`;
+    const country = loc.country !== "United States" ? loc.country : undefined;
+    const full = `${loc.name}${loc.admin1 ? `, ${loc.admin1}` : ""}${country ? `, ${country}` : ""}`;
     onChange(full, {
       city: loc.name,
       state: loc.admin1,
@@ -63,7 +64,7 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
 
   return (
     <div className="relative" ref={containerRef}>
-      {label && <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>}
+      {label && <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>}
       <div className="relative">
         <input
           type="text"
@@ -71,7 +72,7 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
           onChange={(e) => handleSearch(e.target.value)}
           onFocus={() => query.length >= 3 && results.length > 0 && setShowDropdown(true)}
           placeholder={placeholder}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
         />
         {searching && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -81,16 +82,16 @@ export function LocationInput({ value, onChange, placeholder, label }: Props) {
       </div>
 
       {showDropdown && results.length > 0 && (
-        <div className="absolute left-0 right-0 z-[100] mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg shadow-black/5">
+        <div className="absolute left-0 right-0 z-[100] mt-1 max-h-60 overflow-y-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg shadow-black/5">
           {results.map((loc, i) => (
             <button
               key={i}
               onClick={() => select(loc)}
-              className="flex w-full flex-col px-4 py-2 text-left hover:bg-gray-50"
+              className="flex w-full flex-col px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
             >
-              <span className="text-sm font-medium text-gray-900">{loc.name}</span>
-              <span className="text-xs text-gray-400">
-                {[loc.admin1, loc.country].filter(Boolean).join(", ")}
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{loc.name}</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {[loc.admin1, loc.country !== "United States" ? loc.country : undefined].filter(Boolean).join(", ")}
               </span>
             </button>
           ))}

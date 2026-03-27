@@ -74,8 +74,9 @@ async def generate_trip_checklist(
         lib_result = db.table("library_items").select("*").eq("user_id", user_id).execute()
         library_items = lib_result.data or []
 
-        # Fetch hindsight exclusions from past trips (same destination or trip type)
+        # Fetch hindsight exclusions and inclusions from past trips
         hindsight_exclusions: list[str] = []
+        hindsight_inclusions: list[str] = []
         past_trips_result = (
             db.table("trips")
             .select("id")
@@ -86,12 +87,6 @@ async def generate_trip_checklist(
         )
         if past_trips_result.data:
             past_trip_ids = [t["id"] for t in past_trips_result.data]
-            # Find matching by destination or trip_type
-            matching_past = [
-                t["id"]
-                for t in past_trips_result.data
-                # We'll fetch all and filter in-memory
-            ]
             unused_result = (
                 db.table("checklist_items")
                 .select("item_name")
@@ -100,6 +95,14 @@ async def generate_trip_checklist(
                 .execute()
             )
             hindsight_exclusions = list({r["item_name"] for r in (unused_result.data or [])})[:20]
+            wished_result = (
+                db.table("checklist_items")
+                .select("item_name")
+                .in_("trip_id", past_trip_ids)
+                .eq("was_wished_for", True)
+                .execute()
+            )
+            hindsight_inclusions = list({r["item_name"] for r in (wished_result.data or [])})[:20]
 
         # Clear weather if refresh requested
         if refresh_weather:
@@ -122,10 +125,16 @@ async def generate_trip_checklist(
             trip["weather_data"] = weather["data"]
 
         # Build prompt
-        prompt = build_generation_prompt(trip, profiles, bags, library_items, hindsight_exclusions)
+        prompt = build_generation_prompt(trip, profiles, bags, library_items, hindsight_exclusions, hindsight_inclusions)
 
         # Call LLM
-        llm_response = await generate_checklist(prompt)
+        from app.services.admin_service import get_llm_config
+        llm_config = get_llm_config()
+        llm_response = await generate_checklist(
+            prompt,
+            llm_base_url=llm_config["llm_base_url"] or None,
+            llm_model=llm_config["llm_model"],
+        )
 
         # Build name → id maps for post-processing
         bag_map = {b["name"].lower().strip(): b["id"] for b in bags}

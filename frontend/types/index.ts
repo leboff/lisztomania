@@ -3,7 +3,14 @@ export interface User {
   email: string;
   name: string | null;
   default_origin: string | null;
+  is_admin: boolean;
   created_at: string | null;
+}
+
+export interface LLMConfig {
+  llm_base_url: string;
+  llm_model: string;
+  source: string;
 }
 
 export interface Profile {
@@ -118,6 +125,7 @@ export interface ChecklistItem {
   bag_id: string | null;
   is_checked: boolean;
   was_unused: boolean;
+  was_wished_for: boolean;
   source: "llm" | "manual";
   sort_order: number | null;
   quantity: number | null;

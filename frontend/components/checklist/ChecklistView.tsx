@@ -4,6 +4,8 @@ import { useTripChecklist } from "@/hooks/useTripChecklist";
 import { useOptimisticChecklist } from "@/hooks/useOptimisticChecklist";
 import { useChecklistProgress } from "@/hooks/useChecklistProgress";
 import { checklistService } from "@/services/checklist.service";
+import { libraryService } from "@/services/library.service";
+import { useLibrary } from "@/hooks/useLibrary";
 import { ChecklistSection } from "./ChecklistSection";
 import { ViewToggle } from "./ViewToggle";
 import { ProgressDashboard } from "./ProgressDashboard";
@@ -89,6 +91,7 @@ function groupItems(
 export function ChecklistView({ tripId, bags, profiles }: Props) {
   const { items, loading, setItems, refresh } = useTripChecklist(tripId);
   const { toggleItem, reassignItem, deleteItem } = useOptimisticChecklist({ items, setItems });
+  const { items: libraryItems, mutate: mutateLibrary } = useLibrary();
   
   const { 
     checklistView: view, 
@@ -114,11 +117,25 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
     await refresh();
   };
 
+  const handleSaveToLibrary = async (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    await libraryService.create({
+      name: item.item_name,
+      item_type: item.category === "Pre-Trip Task" ? "task" : "packing",
+      weather_tag: "any",
+      trip_type_tag: "any",
+      always_pack: false,
+      assigned_profile_id: null,
+    });
+    mutateLibrary();
+  };
+
   if (loading) {
     return (
       <div className="space-y-2 px-4 py-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-12 rounded-xl bg-gray-100 animate-pulse" />
+          <div key={i} className="h-12 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
         ))}
       </div>
     );
@@ -126,12 +143,12 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
 
   return (
     <div>
-      <div className="bg-white px-4 pt-4 sticky top-0 z-40">
-        <div className="flex rounded-xl bg-gray-100 p-1">
+      <div className="bg-white dark:bg-gray-900 px-4 pt-4 sticky top-0 z-40">
+        <div className="flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1">
           <button
             onClick={() => setTab("packing")}
             className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "packing" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              tab === "packing" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Packing List
@@ -139,7 +156,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
           <button
             onClick={() => setTab("tasks")}
             className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-              tab === "tasks" ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              tab === "tasks" ? "bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Pre-Trip Tasks
@@ -169,6 +186,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
             onToggle={toggleItem}
             onDelete={deleteItem}
             onReassign={setReassignItemId}
+            onSaveToLibrary={handleSaveToLibrary}
           />
         ))}
 
@@ -210,6 +228,7 @@ export function ChecklistView({ tripId, bags, profiles }: Props) {
         onClose={() => setAddSheetOpen(false)}
         bags={bags}
         profiles={profiles}
+        libraryItems={libraryItems}
         onAdd={handleAdd}
         defaultTab={tab}
       />
