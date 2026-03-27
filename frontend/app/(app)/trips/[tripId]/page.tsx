@@ -12,8 +12,9 @@ import { ManageBagsSheet } from "@/components/checklist/ManageBagsSheet";
 import { CollaborateSheet } from "@/components/checklist/CollaborateSheet";
 import { WishedForSheet } from "@/components/checklist/WishedForSheet";
 import { TripChatSheet } from "@/components/chat/TripChatSheet";
+import { WeatherSuggestionsSheet } from "@/components/checklist/WeatherSuggestionsSheet";
 import useSWR from "swr";
-import type { Bag, Profile } from "@/types";
+import type { Bag, Profile, WeatherRefreshResponse, WeatherSuggestion } from "@/types";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,9 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
   const [collaborateOpen, setCollaborateOpen] = useState(false);
   const [wishedForOpen, setWishedForOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [weatherSuggestionsOpen, setWeatherSuggestionsOpen] = useState(false);
+  const [weatherRefreshData, setWeatherRefreshData] = useState<WeatherRefreshResponse | null>(null);
+  const [refreshingWeather, setRefreshingWeather] = useState(false);
   const [overflowOpen, setOverflowOpen] = useState(false);
   const overflowButtonRef = useRef<HTMLButtonElement>(null);
   const overflowMenuRef = useRef<HTMLDivElement>(null);
@@ -85,6 +89,48 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
       mutate();
     } catch {
       mutate();
+    }
+  };
+
+  const handleWeatherRefresh = async () => {
+    setRefreshingWeather(true);
+    try {
+      const result = await checklistService.refreshWeather(tripId);
+      setWeatherRefreshData(result);
+      setWeatherSuggestionsOpen(true);
+      mutate(); // revalidate trip to pick up new weather data
+    } catch {
+      // Silently fail — weather card stays as-is
+    } finally {
+      setRefreshingWeather(false);
+    }
+  };
+
+  const handleAcceptSuggestion = async (suggestion: WeatherSuggestion) => {
+    if (suggestion.action === "add") {
+      const bagId = suggestion.suggested_bag_name
+        ? (bags ?? []).find((b) => b.name.toLowerCase() === suggestion.suggested_bag_name!.toLowerCase())?.id
+        : undefined;
+      const profileId = suggestion.assigned_profile_name
+        ? tripProfiles.find((p) => p.name.toLowerCase() === suggestion.assigned_profile_name!.toLowerCase())?.id
+        : undefined;
+      await checklistService.add(tripId, {
+        item_name: suggestion.item_name,
+        category: suggestion.category,
+        timing_attribute: suggestion.timing_attribute,
+        bag_id: bagId,
+        assigned_profile_id: profileId,
+        quantity: suggestion.quantity ?? undefined,
+      });
+    } else {
+      // For "remove" — find the matching item and delete it
+      const items = await checklistService.list(tripId);
+      const match = items.find(
+        (item) => item.item_name.toLowerCase() === suggestion.item_name.toLowerCase()
+      );
+      if (match) {
+        await checklistService.delete(match.id);
+      }
     }
   };
 
@@ -244,6 +290,8 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
         <WeatherForecast
           weatherData={trip.weather_data}
           weatherSummary={trip.weather_summary}
+          onRefresh={trip.generation_status === "complete" ? handleWeatherRefresh : undefined}
+          isRefreshing={refreshingWeather}
         />
       )}
 
@@ -318,6 +366,17 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
             onClose={() => setChatOpen(false)}
             tripId={trip.id}
           />
+          {weatherRefreshData && (
+            <WeatherSuggestionsSheet
+              open={weatherSuggestionsOpen}
+              onClose={() => setWeatherSuggestionsOpen(false)}
+              oldSummary={weatherRefreshData.old_summary}
+              newSummary={weatherRefreshData.new_summary}
+              weatherChanged={weatherRefreshData.weather_changed}
+              suggestions={weatherRefreshData.suggestions}
+              onAccept={handleAcceptSuggestion}
+            />
+          )}
         </>
       )}
     </div>
