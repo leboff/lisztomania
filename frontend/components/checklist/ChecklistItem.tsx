@@ -122,33 +122,32 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
           </button>
 
           <div className={`flex-1 min-w-0${item.is_checked ? " opacity-60" : ""}`}>
-            <p
+            <div
               className={`text-sm font-medium text-gray-900 dark:text-gray-100 ${
                 item.is_checked ? "line-through text-gray-400 dark:text-gray-500" : ""
               }`}
             >
-              {item.quantity != null && (
+              {item.quantity != null && onUpdateQuantity && !item.is_checked ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setQtyEditing((v) => !v); }}
+                  className={`font-normal mr-1.5 px-1.5 py-0.5 rounded-md text-xs transition-colors ${
+                    qtyEditing
+                      ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-500"
+                  }`}
+                  aria-label="Adjust quantity"
+                >
+                  {item.quantity}×
+                </button>
+              ) : item.quantity != null ? (
                 <span className="text-gray-400 dark:text-gray-500 font-normal mr-1">{item.quantity}×</span>
-              )}
+              ) : null}
               {item.item_name}
-            </p>
+            </div>
             {item.category && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.category}</p>
             )}
           </div>
-
-          {/* Quantity trigger button */}
-          {onUpdateQuantity && !item.is_checked && (
-            <button
-              onClick={(e) => { e.stopPropagation(); if (item.quantity == null) onUpdateQuantity(item.id, 1); setQtyEditing((v) => !v); }}
-              className={`shrink-0 flex h-11 w-11 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 ${qtyEditing ? "text-indigo-500 dark:text-indigo-400" : "text-gray-300 dark:text-gray-600"}`}
-              aria-label="Adjust quantity"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h13.5M5.25 15.75h13.5M8.25 3l-3 18M15.75 3l-3 18" />
-              </svg>
-            </button>
-          )}
 
           {/* Bag / profile badge — tap to reassign */}
           {(bag || profile) && (
@@ -171,34 +170,40 @@ export function ChecklistItem({ item, bags, profiles, onToggle, onDelete, onReas
         </div>
       </div>
 
-      {/* Quantity stepper row — full width, large tap targets */}
-      {qtyEditing && onUpdateQuantity && (
-        <div className="flex items-center bg-gray-50 dark:bg-gray-800/60 px-4 py-1 gap-3">
-          <span className="text-xs text-gray-400 dark:text-gray-500 flex-1">Qty</span>
-          <button
-            onClick={() => onUpdateQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-gray-700 shadow-sm text-gray-700 dark:text-gray-200 text-lg font-bold active:bg-gray-100 dark:active:bg-gray-600"
-            aria-label="Decrease quantity"
-          >
-            −
-          </button>
-          <span className="w-10 text-center text-base font-semibold text-indigo-600 dark:text-indigo-400">
-            {item.quantity ?? 1}
-          </span>
-          <button
-            onClick={() => onUpdateQuantity(item.id, (item.quantity ?? 1) + 1)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-gray-700 shadow-sm text-gray-700 dark:text-gray-200 text-lg font-bold active:bg-gray-100 dark:active:bg-gray-600"
-            aria-label="Increase quantity"
-          >
-            +
-          </button>
-          <button
-            onClick={() => setQtyEditing(false)}
-            className="flex h-11 items-center px-3 text-sm font-medium text-indigo-500 dark:text-indigo-400"
-            aria-label="Done"
-          >
-            Done
-          </button>
+      {/* Quantity stepper row — animated slide-in */}
+      {onUpdateQuantity && (
+        <div
+          className={`overflow-hidden transition-all duration-200 ease-in-out ${
+            qtyEditing ? "max-h-16 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="flex items-center bg-gray-50 dark:bg-gray-800/60 px-4 py-1 gap-3">
+            <span className="text-xs text-gray-400 dark:text-gray-500 flex-1">Qty</span>
+            <button
+              onClick={() => onUpdateQuantity(item.id, Math.max(1, (item.quantity ?? 1) - 1))}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-gray-700 shadow-sm text-gray-700 dark:text-gray-200 text-lg font-bold active:bg-gray-100 dark:active:bg-gray-600"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span className="w-10 text-center text-base font-semibold text-indigo-600 dark:text-indigo-400">
+              {item.quantity ?? 1}
+            </span>
+            <button
+              onClick={() => onUpdateQuantity(item.id, (item.quantity ?? 1) + 1)}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-gray-700 shadow-sm text-gray-700 dark:text-gray-200 text-lg font-bold active:bg-gray-100 dark:active:bg-gray-600"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+            <button
+              onClick={() => setQtyEditing(false)}
+              className="flex h-11 items-center px-3 text-sm font-medium text-indigo-500 dark:text-indigo-400"
+              aria-label="Done"
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
     </div>
