@@ -20,6 +20,8 @@ interface Props {
   weatherData: Record<string, unknown> | null | undefined;
   weatherSummary?: string | null;
   compact?: boolean;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const ICON_EMOJI: Record<string, string> = {
@@ -45,7 +47,7 @@ function formatDate(dateStr: string) {
   };
 }
 
-export function WeatherForecast({ weatherData, weatherSummary, compact = false }: Props) {
+export function WeatherForecast({ weatherData, weatherSummary, compact = false, onRefresh, isRefreshing }: Props) {
   if (!weatherData) return null;
 
   const data = weatherData as WeatherData;
@@ -69,9 +71,27 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false }
         {/* Header */}
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-base">🌤️</span>
-          <p className="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-wide">
+          <p className="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-wide flex-1">
             Weather Forecast
           </p>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors disabled:opacity-50"
+              aria-label="Refresh weather"
+            >
+              <svg
+                className={`h-3.5 w-3.5 text-sky-600 dark:text-sky-400 ${isRefreshing ? "animate-spin" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Day-by-day scroll */}

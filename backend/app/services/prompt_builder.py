@@ -190,3 +190,118 @@ def build_generation_prompt(
     ])
 
     return "\n".join(lines)
+
+
+def _weather_flags(weather_data: dict | None) -> dict:
+    """Compute weather condition flags from structured weather data."""
+    wd = weather_data or {}
+    return {
+        "is_cold": wd.get("min_temp_f", 99) < 50,
+        "is_warm": wd.get("max_temp_f", 0) > 75,
+        "is_rain": (wd.get("rain_days") or 0) > 0,
+        "is_snow": (wd.get("snow_days") or 0) > 0,
+        "min_temp": wd.get("min_temp_f"),
+        "max_temp": wd.get("max_temp_f"),
+        "rain_days": wd.get("rain_days", 0),
+        "snow_days": wd.get("snow_days", 0),
+    }
+
+
+def weather_materially_changed(old_data: dict | None, new_data: dict | None) -> bool:
+    """Return True if weather conditions changed enough to warrant new suggestions."""
+    old = _weather_flags(old_data)
+    new = _weather_flags(new_data)
+    return (
+        old["is_cold"] != new["is_cold"]
+        or old["is_warm"] != new["is_warm"]
+        or old["is_rain"] != new["is_rain"]
+        or old["is_snow"] != new["is_snow"]
+    )
+
+
+def build_weather_suggestion_prompt(
+    old_weather_summary: str | None,
+    old_weather_data: dict | None,
+    new_weather_summary: str | None,
+    new_weather_data: dict | None,
+    existing_item_names: list[str],
+    profiles: list[dict],
+    bags: list[dict],
+) -> str:
+    """Build a focused prompt for weather-delta item suggestions."""
+    old_flags = _weather_flags(old_weather_data)
+    new_flags = _weather_flags(new_weather_data)
+
+    # Describe daily forecast changes if available
+    new_daily = (new_weather_data or {}).get("daily_forecasts", [])
+    daily_details = []
+    for day in new_daily:
+        precip_pct = round(day.get("precip_probability", 0) * 100)
+        detail = f"  {day['date']}: {day.get('summary', '')}, high {day.get('high_f')}°F / low {day.get('low_f')}°F"
+        if precip_pct > 10:
+            detail += f", {precip_pct}% precipitation"
+        daily_details.append(detail)
+
+    profile_names = [p["name"] for p in profiles] if profiles else ["Traveler"]
+    bag_names = [b["name"] for b in bags] if bags else ["Carry-on"]
+
+    lines = [
+        "You are a helpful travel assistant. The weather forecast for an upcoming trip has changed.",
+        "Suggest ONLY items that should be added or removed from the packing list based on the weather change.",
+        "",
+        "## Previous Weather",
+        f"Summary: {old_weather_summary or 'Unknown'}",
+        f"Cold (below 50°F): {old_flags['is_cold']}, Warm (above 75°F): {old_flags['is_warm']}, "
+        f"Rain days: {old_flags['rain_days']}, Snow days: {old_flags['snow_days']}",
+        "",
+        "## Updated Weather",
+        f"Summary: {new_weather_summary or 'Unknown'}",
+        f"Cold (below 50°F): {new_flags['is_cold']}, Warm (above 75°F): {new_flags['is_warm']}, "
+        f"Rain days: {new_flags['rain_days']}, Snow days: {new_flags['snow_days']}",
+    ]
+
+    if daily_details:
+        lines.append("")
+        lines.append("### Day-by-day forecast:")
+        lines.extend(daily_details)
+
+    lines.extend([
+        "",
+        "## Current Packing List Items (do NOT suggest adding items already on this list)",
+    ])
+    if existing_item_names:
+        for name in existing_item_names:
+            lines.append(f"- {name}")
+    else:
+        lines.append("(empty)")
+
+    lines.extend([
+        "",
+        f"## Available bags: {', '.join(bag_names)}",
+        f"## Travelers: {', '.join(profile_names)}",
+        "",
+        "## Instructions",
+        "Based on how the weather has changed, suggest items to ADD (new weather-driven needs) "
+        "or REMOVE (items no longer needed due to weather change).",
+        "- Be conversational and friendly in your friendly_message field — reference specific days or conditions.",
+        '  Example: "Uh-oh, looks like rain on Thursday — grab an umbrella!"',
+        '  Example: "Good news — it warmed up! You can skip the heavy coat."',
+        "- Only suggest 1-6 items. Focus on the most impactful weather-driven changes.",
+        "- Do NOT suggest items already on the packing list for 'add' actions.",
+        "- For personal items, assign to a specific traveler. For shared items, leave assigned_profile_name null.",
+        "- If the weather change is minor, return an empty suggestions list.",
+        "",
+        "Return a JSON object with a 'suggestions' array. Each suggestion must have:",
+        "- item_name: concise name",
+        "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous]",
+        "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
+        f"- suggested_bag_name: one of {bag_names} or null",
+        f"- assigned_profile_name: one of {profile_names} or null",
+        "- quantity: integer or null",
+        '- action: "add" or "remove"',
+        "- friendly_message: a short, friendly explanation of why this item is suggested",
+        "",
+        "Return ONLY valid JSON, no markdown fences.",
+    ])
+
+    return "\n".join(lines)

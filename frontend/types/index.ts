@@ -144,3 +144,22 @@ export interface ChatMessage {
   content: string;
   created_at: string;
 }
+
+export interface WeatherSuggestion {
+  item_name: string;
+  category: string;
+  timing_attribute: TimingAttribute;
+  suggested_bag_name: string | null;
+  assigned_profile_name: string | null;
+  quantity: number | null;
+  action: "add" | "remove";
+  friendly_message: string;
+}
+
+export interface WeatherRefreshResponse {
+  old_summary: string | null;
+  new_summary: string | null;
+  weather_changed: boolean;
+  suggestions: WeatherSuggestion[];
+  weather_data: Record<string, unknown> | null;
+}

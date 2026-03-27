@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import type { ChecklistItem } from "@/types";
+import type { ChecklistItem, WeatherRefreshResponse } from "@/types";
 
 export const checklistService = {
   list: (tripId: string) =>
@@ -37,4 +37,6 @@ export const checklistService = {
     apiClient.get<Array<{ name: string; latitude: number; longitude: number; country: string; admin1?: string }>>(
       `/weather/search?query=${encodeURIComponent(query)}`
     ),
+  refreshWeather: (tripId: string) =>
+    apiClient.post<WeatherRefreshResponse>(`/trips/${tripId}/refresh-weather`),
 };
