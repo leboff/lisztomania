@@ -72,5 +72,25 @@ export function useOptimisticChecklist({ items, setItems }: UseOptimisticCheckli
     [items, setItems]
   );
 
-  return { toggleItem, reassignItem, deleteItem };
+  const updateQuantity = useCallback(
+    async (itemId: string, quantity: number) => {
+      const item = items.find((i) => i.id === itemId);
+      if (!item) return;
+
+      setItems((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, quantity } : i))
+      );
+
+      try {
+        await checklistService.update(itemId, { quantity });
+      } catch {
+        setItems((prev) =>
+          prev.map((i) => (i.id === itemId ? { ...i, quantity: item.quantity } : i))
+        );
+      }
+    },
+    [items, setItems]
+  );
+
+  return { toggleItem, reassignItem, deleteItem, updateQuantity };
 }
