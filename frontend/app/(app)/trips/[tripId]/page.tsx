@@ -18,10 +18,15 @@ import type { Bag, Profile } from "@/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatLocation } from "@/lib/location";
+import { useTripPresence } from "@/hooks/useTripPresence";
+import { PresenceAvatars } from "@/components/checklist/PresenceAvatars";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TripChecklistPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = use(params);
   const { trip, isLoading, mutate } = useTrip(tripId);
+  const { user } = useAuth();
+  const viewers = useTripPresence(tripId, user?.id ?? null, user?.email ?? null, user?.user_metadata?.name ?? null);
   const { data: bags, mutate: mutateBags } = useSWR<Bag[]>(
     tripId ? `/trips/${tripId}/bags` : null,
     () => apiClient.get<Bag[]>(`/trips/${tripId}/bags`)
@@ -132,6 +137,8 @@ export default function TripChecklistPage({ params }: { params: Promise<{ tripId
           <h1 className="flex-1 text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight truncate">
             {trip.name || formatLocation(trip.destination)}
           </h1>
+
+          {user && <PresenceAvatars viewers={viewers} currentUserId={user.id} />}
 
           {/* Overflow menu */}
           <button
