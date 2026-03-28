@@ -1,29 +1,19 @@
 import json
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, check_trip_access
 from app.schemas.chat import ChatMessageCreate, ChatMessageResponse
 from app.services.supabase_client import get_supabase
 from app.services.chat_service import build_chat_context, chat_completion
-from app.utils.exceptions import NotFoundError, ForbiddenError
 
 router = APIRouter(prefix="/trips/{trip_id}/chat", tags=["chat"])
 
 MAX_HISTORY = 20
 
 
-def _check_trip_access(trip: dict, user_id: str) -> None:
-    if trip["user_id"] != user_id and user_id not in (trip.get("collaborator_ids") or []):
-        raise ForbiddenError()
-
-
 def _fetch_trip_context(db, trip_id: str, user_id: str):
     """Fetch trip and all context needed for chat."""
-    trip_result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not trip_result.data:
-        raise NotFoundError("Trip not found")
-    trip = trip_result.data
-    _check_trip_access(trip, user_id)
+    trip = check_trip_access(trip_id, user_id, db)
 
     # Profiles
     tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
@@ -57,11 +47,7 @@ async def get_chat_history(
     db = get_supabase()
     user_id = current_user["id"]
 
-    # Verify access
-    trip_result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not trip_result.data:
-        raise NotFoundError("Trip not found")
-    _check_trip_access(trip_result.data, user_id)
+    check_trip_access(trip_id, user_id, db)
 
     result = (
         db.table("chat_messages")
@@ -140,10 +126,7 @@ async def clear_chat_history(
     db = get_supabase()
     user_id = current_user["id"]
 
-    trip_result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not trip_result.data:
-        raise NotFoundError("Trip not found")
-    _check_trip_access(trip_result.data, user_id)
+    check_trip_access(trip_id, user_id, db)
 
     db.table("chat_messages").delete().eq("trip_id", trip_id).execute()
     return {"ok": True}

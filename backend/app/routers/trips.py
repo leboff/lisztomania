@@ -1,16 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from app.dependencies import get_current_user
+from fastapi import APIRouter, Depends, HTTPException
+from app.dependencies import get_current_user, check_trip_access
 from app.schemas.trip import TripCreate, TripUpdate, TripResponse, CollaboratorInvite, TripCopyOptions
 from app.schemas.profile import ProfileResponse
 from app.services.supabase_client import get_supabase
-from app.utils.exceptions import NotFoundError, ForbiddenError
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
-
-def _check_trip_access(trip: dict, user_id: str) -> None:
-    if trip["user_id"] != user_id and user_id not in (trip.get("collaborator_ids") or []):
-        raise ForbiddenError()
 
 
 def _enrich_trip(trip: dict, db) -> dict:
@@ -65,10 +60,7 @@ async def create_trip(body: TripCreate, current_user: dict = Depends(get_current
 @router.get("/{trip_id}/profiles", response_model=list[ProfileResponse])
 async def list_trip_profiles(trip_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    trip = db.table("trips").select("user_id,collaborator_ids").eq("id", trip_id).single().execute()
-    if not trip.data:
-        raise NotFoundError("Trip not found")
-    _check_trip_access(trip.data, current_user["id"])
+    check_trip_access(trip_id, current_user["id"], db)
     tp = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
     profile_ids = [r["profile_id"] for r in (tp.data or [])]
     if not profile_ids:
@@ -80,11 +72,8 @@ async def list_trip_profiles(trip_id: str, current_user: dict = Depends(get_curr
 @router.get("/{trip_id}", response_model=TripResponse)
 async def get_trip(trip_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not result.data:
-        raise NotFoundError("Trip not found")
-    _check_trip_access(result.data, current_user["id"])
-    return _enrich_trip(result.data, db)
+    trip = check_trip_access(trip_id, current_user["id"], db)
+    return _enrich_trip(trip, db)
 
 
 @router.patch("/{trip_id}", response_model=TripResponse)
@@ -92,10 +81,7 @@ async def update_trip(
     trip_id: str, body: TripUpdate, current_user: dict = Depends(get_current_user)
 ):
     db = get_supabase()
-    existing = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Trip not found")
-    _check_trip_access(existing.data, current_user["id"])
+    check_trip_access(trip_id, current_user["id"], db)
     update_data = body.model_dump(exclude_none=True)
     if "start_date" in update_data:
         update_data["start_date"] = str(update_data["start_date"])
@@ -108,11 +94,7 @@ async def update_trip(
 @router.delete("/{trip_id}", status_code=204)
 async def delete_trip(trip_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    existing = db.table("trips").select("user_id").eq("id", trip_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Trip not found")
-    if existing.data["user_id"] != current_user["id"]:
-        raise ForbiddenError("Only the trip owner can delete it")
+    check_trip_access(trip_id, current_user["id"], db, require_owner=True)
     db.table("trips").delete().eq("id", trip_id).execute()
 
 
@@ -124,11 +106,7 @@ async def copy_trip(
     uid = current_user["id"]
 
     # Fetch source trip and verify access
-    result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not result.data:
-        raise NotFoundError("Trip not found")
-    source = result.data
-    _check_trip_access(source, uid)
+    source = check_trip_access(trip_id, uid, db)
 
     # Build new trip row from source
     copy_fields = [
@@ -179,21 +157,18 @@ async def add_collaborator(
     trip_id: str, body: CollaboratorInvite, current_user: dict = Depends(get_current_user)
 ):
     db = get_supabase()
-    existing = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Trip not found")
-    if existing.data["user_id"] != current_user["id"]:
-        raise ForbiddenError("Only the trip owner can add collaborators")
+    existing = check_trip_access(trip_id, current_user["id"], db, require_owner=True)
     # Look up user by email
     user_result = db.table("users").select("id").eq("email", body.email).single().execute()
     if not user_result.data:
         raise HTTPException(status_code=404, detail="User with that email not found")
     collab_id = user_result.data["id"]
-    collaborator_ids = existing.data.get("collaborator_ids") or []
+    collaborator_ids = existing.get("collaborator_ids") or []
     if collab_id not in collaborator_ids:
         collaborator_ids.append(collab_id)
     result = db.table("trips").update({"collaborator_ids": collaborator_ids}).eq("id", trip_id).execute()
     return _enrich_trip(result.data[0], db)
+
 
 
 @router.delete("/{trip_id}/collaborators/{user_id}", response_model=TripResponse)
@@ -201,11 +176,7 @@ async def remove_collaborator(
     trip_id: str, user_id: str, current_user: dict = Depends(get_current_user)
 ):
     db = get_supabase()
-    existing = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Trip not found")
-    if existing.data["user_id"] != current_user["id"]:
-        raise ForbiddenError("Only the trip owner can remove collaborators")
-    collaborator_ids = [c for c in (existing.data.get("collaborator_ids") or []) if c != user_id]
+    existing = check_trip_access(trip_id, current_user["id"], db, require_owner=True)
+    collaborator_ids = [c for c in (existing.get("collaborator_ids") or []) if c != user_id]
     result = db.table("trips").update({"collaborator_ids": collaborator_ids}).eq("id", trip_id).execute()
     return _enrich_trip(result.data[0], db)
