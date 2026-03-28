@@ -1,7 +1,11 @@
 import httpx
+import logging
+import time
 from datetime import date, datetime, timezone
 from app.config import settings
 from app.constants import WEATHER_ICON_SUMMARY
+
+logger = logging.getLogger("weather")
 
 
 async def search_locations(query: str) -> list[dict]:
@@ -30,6 +34,10 @@ async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
         if not results and "," in destination:
             city_candidate = destination.split(",")[0].strip()
             if city_candidate and city_candidate != destination:
+                logger.warning(
+                    "geocoding fallback: trying city before comma",
+                    extra={"original": destination, "fallback": city_candidate},
+                )
                 resp = await client.get(
                     "https://geocoding-api.open-meteo.com/v1/search",
                     params={"name": city_candidate, "count": 1, "language": "en", "format": "json"},
@@ -42,6 +50,10 @@ async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
             parts = destination.split()
             if len(parts) > 1:
                 city_candidate = " ".join(parts[:-1])
+                logger.warning(
+                    "geocoding fallback: stripping last word",
+                    extra={"original": destination, "fallback": city_candidate},
+                )
                 resp = await client.get(
                     "https://geocoding-api.open-meteo.com/v1/search",
                     params={"name": city_candidate, "count": 1, "language": "en", "format": "json"},
@@ -85,12 +97,26 @@ async def fetch_weather(
             "data": {},
         }
 
+    logger.info(
+        "fetching weather forecast",
+        extra={"destination": destination, "provider": "pirate_weather", "lat": lat, "lon": lon},
+    )
+    fetch_start = time.monotonic()
     async with httpx.AsyncClient(timeout=15.0) as client:
         resp = await client.get(
             f"https://api.pirateweather.net/forecast/{settings.pirate_weather_api_key}/{lat},{lon}",
             params={"units": "us", "exclude": "currently,minutely,hourly,alerts,flags"},
         )
         forecast = resp.json()
+    logger.info(
+        "weather forecast received",
+        extra={
+            "destination": destination,
+            "provider": "pirate_weather",
+            "status_code": resp.status_code,
+            "duration_ms": round((time.monotonic() - fetch_start) * 1000, 1),
+        },
+    )
 
     daily_block = forecast.get("daily", {}).get("data", [])
     if not daily_block:

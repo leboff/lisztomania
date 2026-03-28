@@ -1,7 +1,11 @@
 import json
+import logging
+import time
 from openai import AsyncOpenAI
 from app.schemas.generation import LLMGenerationResponse, LLMChecklistItem, LLMWeatherSuggestionsResponse
 from app.services.llm_config import resolve_llm_config
+
+logger = logging.getLogger("llm")
 
 
 async def generate_checklist(
@@ -67,8 +71,14 @@ async def generate_checklist(
     # Providers that support structured output (json_schema response_format)
     use_json_schema = not config.base_url or "openai.com" in config.base_url
 
+    logger.info(
+        "llm checklist call starting",
+        extra={"model": config.model, "prompt_chars": len(prompt)},
+    )
+
     for attempt in range(2):
         try:
+            call_start = time.monotonic()
             if use_json_schema:
                 response = await client.chat.completions.create(
                     model=config.model,
@@ -88,11 +98,27 @@ async def generate_checklist(
                     response_format={"type": "json_object"},
                     temperature=config.temperature,
                 )
+            duration_ms = round((time.monotonic() - call_start) * 1000, 1)
             raw = response.choices[0].message.content
             data = json.loads(raw)
-            return LLMGenerationResponse.model_validate(data)
+            result = LLMGenerationResponse.model_validate(data)
+            logger.info(
+                "llm checklist call completed",
+                extra={
+                    "model": config.model,
+                    "attempt": attempt,
+                    "items_generated": len(result.items),
+                    "response_chars": len(raw),
+                    "duration_ms": duration_ms,
+                },
+            )
+            return result
         except Exception as e:
             if attempt == 0:
+                logger.warning(
+                    "llm checklist call failed, retrying",
+                    extra={"attempt": attempt, "error": str(e)},
+                )
                 messages.append(
                     {
                         "role": "user",
@@ -100,6 +126,10 @@ async def generate_checklist(
                     }
                 )
             else:
+                logger.error(
+                    "llm checklist call failed after 2 attempts",
+                    extra={"error": str(e)},
+                )
                 raise RuntimeError(f"LLM generation failed after 2 attempts: {e}") from e
 
     raise RuntimeError("Unexpected: LLM generation loop exhausted")
@@ -158,8 +188,14 @@ async def generate_weather_suggestions(
 
     use_json_schema = not config.base_url or "openai.com" in config.base_url
 
+    logger.info(
+        "llm weather suggestions call starting",
+        extra={"model": config.model, "prompt_chars": len(prompt)},
+    )
+
     for attempt in range(2):
         try:
+            call_start = time.monotonic()
             if use_json_schema:
                 response = await client.chat.completions.create(
                     model=config.model,
@@ -177,11 +213,27 @@ async def generate_weather_suggestions(
                     response_format={"type": "json_object"},
                     temperature=config.temperature,
                 )
+            duration_ms = round((time.monotonic() - call_start) * 1000, 1)
             raw = response.choices[0].message.content
             data = json.loads(raw)
-            return LLMWeatherSuggestionsResponse.model_validate(data)
+            result = LLMWeatherSuggestionsResponse.model_validate(data)
+            logger.info(
+                "llm weather suggestions call completed",
+                extra={
+                    "model": config.model,
+                    "attempt": attempt,
+                    "suggestions_count": len(result.suggestions),
+                    "response_chars": len(raw),
+                    "duration_ms": duration_ms,
+                },
+            )
+            return result
         except Exception as e:
             if attempt == 0:
+                logger.warning(
+                    "llm weather suggestions call failed, retrying",
+                    extra={"attempt": attempt, "error": str(e)},
+                )
                 messages.append(
                     {
                         "role": "user",
@@ -189,6 +241,10 @@ async def generate_weather_suggestions(
                     }
                 )
             else:
+                logger.error(
+                    "llm weather suggestions call failed after 2 attempts",
+                    extra={"error": str(e)},
+                )
                 raise RuntimeError(f"Weather suggestions LLM call failed after 2 attempts: {e}") from e
 
     raise RuntimeError("Unexpected: weather suggestions LLM loop exhausted")

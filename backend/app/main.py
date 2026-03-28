@@ -1,7 +1,15 @@
-from fastapi import FastAPI
+import time
+import uuid
+import logging
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+from app.logging_config import setup_logging
 from app.routers import users, profiles, library, trips, bags, checklist, generation, accommodations, profile_bags, admin, chat
+
+setup_logging()
+
+logger = logging.getLogger("api")
 
 app = FastAPI(
     title="Lisztomania API",
@@ -16,6 +24,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_logging(request: Request, call_next):
+    request_id = str(uuid.uuid4())[:8]
+    start = time.monotonic()
+    response = await call_next(request)
+    duration_ms = (time.monotonic() - start) * 1000
+    logger.info(
+        "request completed",
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration_ms": round(duration_ms, 1),
+        },
+    )
+    return response
 
 API_PREFIX = "/api/v1"
 
