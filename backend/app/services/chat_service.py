@@ -1,29 +1,21 @@
 from openai import AsyncOpenAI
 from app.config import settings
 from app.dependencies import check_trip_access
+from app.repositories.trip_repository import TripRepository
+from app.repositories.profile_repository import ProfileRepository
+from app.repositories.bag_repository import BagRepository
+from app.repositories.checklist_repository import ChecklistRepository
 
 
-def fetch_trip_context(db, trip_id: str, user_id: str) -> tuple:
+def fetch_trip_context(trip_id: str, user_id: str) -> tuple:
     """Fetch trip and all context needed for chat."""
-    trip = check_trip_access(trip_id, user_id, db)
+    trip = check_trip_access(trip_id, user_id)
 
-    tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
-    profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
-    profiles = []
-    if profile_ids:
-        p_result = db.table("profiles").select("*").in_("id", profile_ids).execute()
-        profiles = p_result.data or []
-
-    bags = (db.table("bags").select("*").eq("trip_id", trip_id).execute()).data or []
-
-    checklist_items = (
-        db.table("checklist_items")
-        .select("*")
-        .eq("trip_id", trip_id)
-        .order("sort_order")
-        .order("created_at")
-        .execute()
-    ).data or []
+    trip_repo = TripRepository()
+    profile_ids = trip_repo.list_profile_ids(trip_id)
+    profiles = ProfileRepository().list_by_ids(profile_ids) if profile_ids else []
+    bags = BagRepository().list_by_trip(trip_id)
+    checklist_items = ChecklistRepository().list_all_by_trip(trip_id)
 
     return trip, profiles, bags, checklist_items
 

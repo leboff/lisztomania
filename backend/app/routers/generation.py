@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import date
 from app.dependencies import get_current_user, check_trip_access
 from app.schemas.generation import GenerationResponse, WeatherRefreshResponse
-from app.services.supabase_client import get_supabase
 from app.services.weather_service import fetch_weather, search_locations
 from app.services import generation_service
 
@@ -40,9 +39,8 @@ async def generate_trip_checklist(
     refresh_weather: bool = False,
     current_user: dict = Depends(get_current_user),
 ):
-    db = get_supabase()
-    trip = check_trip_access(trip_id, current_user["id"], db)
-    result = await generation_service.run_generation(trip_id, current_user["id"], trip, refresh_weather, db)
+    trip = check_trip_access(trip_id, current_user["id"])
+    result = await generation_service.run_generation(trip_id, current_user["id"], trip, refresh_weather)
     return GenerationResponse(**result)
 
 
@@ -52,7 +50,6 @@ async def refresh_trip_weather(
     current_user: dict = Depends(get_current_user),
 ):
     """Refresh weather for a trip and suggest incremental checklist changes."""
-    db = get_supabase()
-    trip = check_trip_access(trip_id, current_user["id"], db)
-    result = await generation_service.run_weather_refresh(trip_id, trip, db)
+    trip = check_trip_access(trip_id, current_user["id"])
+    result = await generation_service.run_weather_refresh(trip_id, trip)
     return WeatherRefreshResponse(**result)
