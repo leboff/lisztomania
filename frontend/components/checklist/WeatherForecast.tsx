@@ -1,4 +1,5 @@
 "use client";
+import { WEATHER_ICON_EMOJI } from "@/lib/constants";
 
 interface WeatherDay {
   date: string;
@@ -24,19 +25,6 @@ interface Props {
   isRefreshing?: boolean;
 }
 
-const ICON_EMOJI: Record<string, string> = {
-  "clear-day": "☀️",
-  "clear-night": "🌙",
-  rain: "🌧️",
-  snow: "❄️",
-  sleet: "🌨️",
-  wind: "💨",
-  fog: "🌫️",
-  cloudy: "☁️",
-  "partly-cloudy-day": "⛅",
-  "partly-cloudy-night": "🌙",
-  thunderstorm: "⛈️",
-};
 
 function formatDate(dateStr: string) {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -98,7 +86,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false, 
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           {forecasts.map((day) => {
             const { weekday, monthDay } = formatDate(day.date);
-            const emoji = ICON_EMOJI[day.icon] ?? "🌡️";
+            const emoji = WEATHER_ICON_EMOJI[day.icon] ?? "🌡️";
             const precipPct = Math.round(day.precip_probability * 100);
 
             return (

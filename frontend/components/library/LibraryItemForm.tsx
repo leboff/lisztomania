@@ -3,9 +3,7 @@ import { useState } from "react";
 import { libraryService } from "@/services/library.service";
 import { useProfiles } from "@/hooks/useProfiles";
 import type { LibraryItem } from "@/types";
-
-const WEATHER_TAGS = ["any", "cold", "warm", "rain", "snow"];
-const TRIP_TYPES = ["any", "work", "beach", "camping", "family", "city", "ski", "road trip"];
+import { WEATHER_TAGS, TRIP_TYPES } from "@/lib/constants";
 
 interface Props {
   item?: LibraryItem;

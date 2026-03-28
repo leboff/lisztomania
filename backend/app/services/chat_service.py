@@ -1,5 +1,6 @@
 from openai import AsyncOpenAI
 from app.config import settings
+from app.constants import DEFAULT_CHAT_TEMPERATURE
 from app.dependencies import check_trip_access
 from app.repositories.trip_repository import TripRepository
 from app.repositories.profile_repository import ProfileRepository
@@ -122,7 +123,7 @@ async def chat_completion(
     stream = await client.chat.completions.create(
         model=model,
         messages=all_messages,
-        temperature=0.5,
+        temperature=DEFAULT_CHAT_TEMPERATURE,
         stream=True,
     )
 
