@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import date
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, check_trip_access
 from app.schemas.generation import GenerationResponse, WeatherRefreshResponse, WeatherSuggestionItem
 from app.services.supabase_client import get_supabase
 from app.services.weather_service import fetch_weather, search_locations
 from app.services.prompt_builder import build_generation_prompt, build_weather_suggestion_prompt, weather_materially_changed
 from app.services.llm_service import generate_checklist, generate_weather_suggestions
-from app.utils.exceptions import NotFoundError, ForbiddenError
 
 router = APIRouter(tags=["generation"])
 
@@ -46,13 +45,8 @@ async def generate_trip_checklist(
     db = get_supabase()
     user_id = current_user["id"]
 
-    # Fetch trip
-    trip_result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not trip_result.data:
-        raise NotFoundError("Trip not found")
-    trip = trip_result.data
-    if trip["user_id"] != user_id and user_id not in (trip.get("collaborator_ids") or []):
-        raise ForbiddenError()
+    # Fetch trip and verify access
+    trip = check_trip_access(trip_id, user_id, db)
 
     # Mark as generating
     db.table("trips").update({"generation_status": "generating"}).eq("id", trip_id).execute()
@@ -193,12 +187,7 @@ async def refresh_trip_weather(
     user_id = current_user["id"]
 
     # Fetch trip & check access
-    trip_result = db.table("trips").select("*").eq("id", trip_id).single().execute()
-    if not trip_result.data:
-        raise NotFoundError("Trip not found")
-    trip = trip_result.data
-    if trip["user_id"] != user_id and user_id not in (trip.get("collaborator_ids") or []):
-        raise ForbiddenError()
+    trip = check_trip_access(trip_id, user_id, db)
 
     # Save old weather
     old_summary = trip.get("weather_summary")
