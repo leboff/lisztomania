@@ -1,7 +1,10 @@
+import logging
 from jwt import PyJWKClient, InvalidTokenError, get_unverified_header
 from jwt import decode as jwt_decode
 from fastapi import HTTPException, status
 from app.config import settings
+
+logger = logging.getLogger("auth")
 
 
 _jwks_client: PyJWKClient | None = None
@@ -21,6 +24,7 @@ def decode_supabase_jwt(token: str) -> dict:
     try:
         header = get_unverified_header(token)
     except InvalidTokenError as e:
+        logger.warning("JWT header decode failed", extra={"reason": str(e)})
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {e}",
@@ -48,6 +52,10 @@ def decode_supabase_jwt(token: str) -> dict:
                 options={"verify_aud": False},
             )
     except InvalidTokenError as e:
+        logger.warning(
+            "JWT verification failed",
+            extra={"reason": str(e), "alg": alg},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {e}",
@@ -55,6 +63,10 @@ def decode_supabase_jwt(token: str) -> dict:
         )
     except Exception as e:
         # Catches JWKS fetch failures, network errors, etc.
+        logger.warning(
+            "JWT verification error",
+            extra={"reason": str(e), "alg": alg},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token verification failed: {e}",
