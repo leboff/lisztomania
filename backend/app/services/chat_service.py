@@ -1,5 +1,31 @@
 from openai import AsyncOpenAI
 from app.config import settings
+from app.dependencies import check_trip_access
+
+
+def fetch_trip_context(db, trip_id: str, user_id: str) -> tuple:
+    """Fetch trip and all context needed for chat."""
+    trip = check_trip_access(trip_id, user_id, db)
+
+    tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
+    profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
+    profiles = []
+    if profile_ids:
+        p_result = db.table("profiles").select("*").in_("id", profile_ids).execute()
+        profiles = p_result.data or []
+
+    bags = (db.table("bags").select("*").eq("trip_id", trip_id).execute()).data or []
+
+    checklist_items = (
+        db.table("checklist_items")
+        .select("*")
+        .eq("trip_id", trip_id)
+        .order("sort_order")
+        .order("created_at")
+        .execute()
+    ).data or []
+
+    return trip, profiles, bags, checklist_items
 
 
 def build_chat_context(

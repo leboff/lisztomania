@@ -7,7 +7,7 @@ from app.schemas.checklist_item import (
     HindsightUpdate,
 )
 from app.services.supabase_client import get_supabase
-from app.utils.exceptions import NotFoundError
+from app.services import checklist_service
 
 router = APIRouter(tags=["checklist"])
 
@@ -16,15 +16,7 @@ router = APIRouter(tags=["checklist"])
 async def get_checklist(trip_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
     check_trip_access(trip_id, current_user["id"], db)
-    result = (
-        db.table("checklist_items")
-        .select("*")
-        .eq("trip_id", trip_id)
-        .order("sort_order", nullsfirst=True)
-        .order("created_at")
-        .execute()
-    )
-    return result.data or []
+    return checklist_service.get_checklist(trip_id, db)
 
 
 @router.post("/trips/{trip_id}/checklist", response_model=ChecklistItemResponse, status_code=201)
@@ -33,9 +25,7 @@ async def add_checklist_item(
 ):
     db = get_supabase()
     check_trip_access(trip_id, current_user["id"], db)
-    data = body.model_dump() | {"trip_id": trip_id, "source": "manual"}
-    result = db.table("checklist_items").insert(data).execute()
-    return result.data[0]
+    return checklist_service.add_checklist_item(trip_id, body.model_dump(), db)
 
 
 @router.patch("/checklist/{item_id}", response_model=ChecklistItemResponse)
@@ -43,23 +33,16 @@ async def update_checklist_item(
     item_id: str, body: ChecklistItemUpdate, current_user: dict = Depends(get_current_user)
 ):
     db = get_supabase()
-    existing = db.table("checklist_items").select("trip_id").eq("id", item_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Item not found")
-    check_trip_access(existing.data["trip_id"], current_user["id"], db)
-    update_data = body.model_dump(exclude_none=True)
-    result = db.table("checklist_items").update(update_data).eq("id", item_id).execute()
-    return result.data[0]
+    item, trip_id = checklist_service.update_checklist_item(item_id, body.model_dump(exclude_none=True), db)
+    check_trip_access(trip_id, current_user["id"], db)
+    return item
 
 
 @router.delete("/checklist/{item_id}", status_code=204)
 async def delete_checklist_item(item_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    existing = db.table("checklist_items").select("trip_id").eq("id", item_id).single().execute()
-    if not existing.data:
-        raise NotFoundError("Item not found")
-    check_trip_access(existing.data["trip_id"], current_user["id"], db)
-    db.table("checklist_items").delete().eq("id", item_id).execute()
+    trip_id = checklist_service.delete_checklist_item(item_id, db)
+    check_trip_access(trip_id, current_user["id"], db)
 
 
 @router.post("/trips/{trip_id}/hindsight", status_code=200)
@@ -68,9 +51,5 @@ async def submit_hindsight(
 ):
     db = get_supabase()
     check_trip_access(trip_id, current_user["id"], db)
-    if body.unused_item_ids:
-        db.table("checklist_items").update({"was_unused": True}).in_("id", body.unused_item_ids).execute()
-    if body.wished_for_item_ids:
-        db.table("checklist_items").update({"was_wished_for": True}).in_("id", body.wished_for_item_ids).execute()
-    db.table("trips").update({"hindsight_completed": True}).eq("id", trip_id).execute()
+    checklist_service.submit_hindsight(trip_id, body.unused_item_ids or [], body.wished_for_item_ids or [], db)
     return {"status": "ok"}
