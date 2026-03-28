@@ -1,6 +1,11 @@
 from datetime import date
 from fastapi import HTTPException
 
+from app.repositories.trip_repository import TripRepository
+from app.repositories.profile_repository import ProfileRepository
+from app.repositories.bag_repository import BagRepository
+from app.repositories.library_repository import LibraryRepository
+from app.repositories.checklist_repository import ChecklistRepository
 from app.services.weather_service import fetch_weather
 from app.services.prompt_builder import (
     build_generation_prompt,
@@ -10,60 +15,31 @@ from app.services.prompt_builder import (
 from app.services.llm_service import generate_checklist, generate_weather_suggestions
 
 
-async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather: bool, db) -> dict:
+async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather: bool) -> dict:
     """Full generation orchestration pipeline: fetch context, call LLM, persist results."""
-    db.table("trips").update({"generation_status": "generating"}).eq("id", trip_id).execute()
+    trip_repo = TripRepository()
+    trip_repo.update(trip_id, {"generation_status": "generating"})
 
     try:
-        # Fetch profiles on this trip
-        tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
-        profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
-        profiles = []
-        if profile_ids:
-            p_result = db.table("profiles").select("*").in_("id", profile_ids).execute()
-            profiles = p_result.data or []
+        profile_ids = trip_repo.list_profile_ids(trip_id)
+        profiles = ProfileRepository().list_by_ids(profile_ids) if profile_ids else []
 
-        # Fetch bags
-        bags_result = db.table("bags").select("*").eq("trip_id", trip_id).execute()
-        bags = bags_result.data or []
-
-        # Fetch user's library items
-        lib_result = db.table("library_items").select("*").eq("user_id", user_id).execute()
-        library_items = lib_result.data or []
+        bags = BagRepository().list_by_trip(trip_id)
+        library_items = LibraryRepository().list_by_user(user_id)
 
         # Fetch hindsight exclusions and inclusions from past trips
         hindsight_exclusions: list[str] = []
         hindsight_inclusions: list[str] = []
-        past_trips_result = (
-            db.table("trips")
-            .select("id")
-            .eq("user_id", user_id)
-            .eq("hindsight_completed", True)
-            .neq("id", trip_id)
-            .execute()
-        )
-        if past_trips_result.data:
-            past_trip_ids = [t["id"] for t in past_trips_result.data]
-            unused_result = (
-                db.table("checklist_items")
-                .select("item_name")
-                .in_("trip_id", past_trip_ids)
-                .eq("was_unused", True)
-                .execute()
-            )
-            hindsight_exclusions = list({r["item_name"] for r in (unused_result.data or [])})[:20]
-            wished_result = (
-                db.table("checklist_items")
-                .select("item_name")
-                .in_("trip_id", past_trip_ids)
-                .eq("was_wished_for", True)
-                .execute()
-            )
-            hindsight_inclusions = list({r["item_name"] for r in (wished_result.data or [])})[:20]
+        past_trips = trip_repo.list_completed_hindsight(user_id, trip_id)
+        if past_trips:
+            checklist_repo = ChecklistRepository()
+            past_trip_ids = [t["id"] for t in past_trips]
+            hindsight_exclusions = checklist_repo.list_unused_names_for_trips(past_trip_ids)[:20]
+            hindsight_inclusions = checklist_repo.list_wished_names_for_trips(past_trip_ids)[:20]
 
         # Clear weather if refresh requested
         if refresh_weather:
-            db.table("trips").update({"weather_summary": None, "weather_data": None}).eq("id", trip_id).execute()
+            trip_repo.update(trip_id, {"weather_summary": None, "weather_data": None})
             trip["weather_summary"] = None
             trip["weather_data"] = None
 
@@ -74,14 +50,13 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
                 date.fromisoformat(str(trip["start_date"])),
                 date.fromisoformat(str(trip["end_date"])),
             )
-            db.table("trips").update({
+            trip_repo.update(trip_id, {
                 "weather_summary": weather["summary"],
                 "weather_data": weather["data"],
-            }).eq("id", trip_id).execute()
+            })
             trip["weather_summary"] = weather["summary"]
             trip["weather_data"] = weather["data"]
 
-        # Build prompt and call LLM
         prompt = build_generation_prompt(trip, profiles, bags, library_items, hindsight_exclusions, hindsight_inclusions)
 
         from app.services.admin_service import get_llm_config
@@ -92,7 +67,6 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
             llm_model=llm_config["llm_model"],
         )
 
-        # Remap LLM name references to DB IDs
         bag_map = {b["name"].lower().strip(): b["id"] for b in bags}
         profile_map = {p["name"].lower().strip(): p["id"] for p in profiles}
 
@@ -116,18 +90,17 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
                 "sort_order": i,
             })
 
-        # Atomically delete old LLM items and insert new ones
-        db.rpc("replace_checklist_items", {"p_trip_id": trip_id, "p_items": rows}).execute()
-        db.table("trips").update({"generation_status": "complete"}).eq("id", trip_id).execute()
+        ChecklistRepository().replace_for_trip(trip_id, rows)
+        trip_repo.update(trip_id, {"generation_status": "complete"})
 
         return {"trip_id": trip_id, "items_generated": len(rows), "generation_status": "complete"}
 
     except Exception as e:
-        db.table("trips").update({"generation_status": "error"}).eq("id", trip_id).execute()
+        trip_repo.update(trip_id, {"generation_status": "error"})
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
 
 
-async def run_weather_refresh(trip_id: str, trip: dict, db) -> dict:
+async def run_weather_refresh(trip_id: str, trip: dict) -> dict:
     """Refresh weather for a trip and return LLM suggestions for checklist changes."""
     old_summary = trip.get("weather_summary")
     old_data = trip.get("weather_data")
@@ -144,10 +117,8 @@ async def run_weather_refresh(trip_id: str, trip: dict, db) -> dict:
     new_summary = weather["summary"]
     new_data = weather["data"]
 
-    db.table("trips").update({
-        "weather_summary": new_summary,
-        "weather_data": new_data,
-    }).eq("id", trip_id).execute()
+    trip_repo = TripRepository()
+    trip_repo.update(trip_id, {"weather_summary": new_summary, "weather_data": new_data})
 
     if not weather_materially_changed(old_data, new_data):
         return {
@@ -158,19 +129,12 @@ async def run_weather_refresh(trip_id: str, trip: dict, db) -> dict:
             "weather_data": new_data,
         }
 
-    # Fetch context for suggestions
-    checklist_result = db.table("checklist_items").select("item_name").eq("trip_id", trip_id).execute()
-    existing_item_names = [r["item_name"] for r in (checklist_result.data or [])]
+    checklist_repo = ChecklistRepository()
+    existing_item_names = checklist_repo.list_item_names_by_trip(trip_id)
 
-    tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
-    profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
-    profiles = []
-    if profile_ids:
-        p_result = db.table("profiles").select("*").in_("id", profile_ids).execute()
-        profiles = p_result.data or []
-
-    bags_result = db.table("bags").select("*").eq("trip_id", trip_id).execute()
-    bags = bags_result.data or []
+    profile_ids = trip_repo.list_profile_ids(trip_id)
+    profiles = ProfileRepository().list_by_ids(profile_ids) if profile_ids else []
+    bags = BagRepository().list_by_trip(trip_id)
 
     prompt = build_weather_suggestion_prompt(
         old_summary, old_data, new_summary, new_data,
@@ -187,7 +151,6 @@ async def run_weather_refresh(trip_id: str, trip: dict, db) -> dict:
         )
         suggestions = llm_response.suggestions
     except Exception:
-        # LLM failure shouldn't block weather update — return with no suggestions
         suggestions = []
 
     return {
