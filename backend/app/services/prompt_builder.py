@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from datetime import date
 from app.constants import (
     CATEGORIES,
@@ -7,58 +8,70 @@ from app.constants import (
 )
 
 
-def build_generation_prompt(
-    trip: dict,
-    profiles: list[dict],
-    bags: list[dict],
-    library_items: list[dict],
-    hindsight_exclusions: list[str],
-    hindsight_inclusions: list[str] = [],
-) -> str:
-    """
-    Assembles the full LLM prompt from all trip context.
-    Returns a string prompt to send to the LLM.
-    """
-    duration = (
-        (date.fromisoformat(str(trip["end_date"])) - date.fromisoformat(str(trip["start_date"]))).days + 1
-    )
+class PromptSection(ABC):
+    @abstractmethod
+    def render(self) -> str | None:
+        """Return section text, or None to skip this section."""
+        ...
 
-    lines = [
-        "You are a smart travel assistant. Generate a comprehensive, practical packing list.",
-        "",
-        f"## Trip Details",
-        f"- Origin: {trip.get('origin', 'Unknown')}",
-        f"- Destination: {trip['destination']}",
-        f"- Dates: {trip['start_date']} to {trip['end_date']} ({duration} days)",
-        f"- Trip type: {trip.get('trip_type') or 'general'}",
-        f"- Weather: {trip.get('weather_summary') or 'Unknown conditions'}",
-        *(
-            [f"- Planned events/activities: {', '.join(trip['trip_events'])}"]
-            if trip.get("trip_events")
-            else []
-        ),
-        "",
-        "## Travelers",
-    ]
 
-    if profiles:
-        for p in profiles:
-            age_str = f", age {p['age']}" if p.get("age") else ""
-            rel_str = f" ({p.get('relationship', '')})" if p.get("relationship") else ""
-            gender_str = f", {p.get('gender', '')}" if p.get("gender") else ""
-            notes_str = f" — notes: {p['notes']}" if p.get("notes") else ""
-            lines.append(f"- {p['name']}{rel_str}{age_str}{gender_str}{notes_str}")
-    else:
-        lines.append("- 1 adult traveler")
+class SystemInstructionSection(PromptSection):
+    def render(self) -> str:
+        return "You are a smart travel assistant. Generate a comprehensive, practical packing list."
 
-    lines.append("")
 
-    # Accommodation section
-    accommodation_type = trip.get("accommodation_type")
-    sleeping_rooms = trip.get("sleeping_rooms") or []
+class TripDetailsSection(PromptSection):
+    def __init__(self, trip: dict):
+        self.trip = trip
 
-    if accommodation_type or sleeping_rooms:
-        lines.append("## Accommodation")
+    def render(self) -> str:
+        trip = self.trip
+        duration = (
+            (date.fromisoformat(str(trip["end_date"])) - date.fromisoformat(str(trip["start_date"]))).days + 1
+        )
+        lines = [
+            "## Trip Details",
+            f"- Origin: {trip.get('origin', 'Unknown')}",
+            f"- Destination: {trip['destination']}",
+            f"- Dates: {trip['start_date']} to {trip['end_date']} ({duration} days)",
+            f"- Trip type: {trip.get('trip_type') or 'general'}",
+            f"- Weather: {trip.get('weather_summary') or 'Unknown conditions'}",
+        ]
+        if trip.get("trip_events"):
+            lines.append(f"- Planned events/activities: {', '.join(trip['trip_events'])}")
+        return "\n".join(lines)
+
+
+class TravelersSection(PromptSection):
+    def __init__(self, profiles: list[dict]):
+        self.profiles = profiles
+
+    def render(self) -> str:
+        lines = ["## Travelers"]
+        if self.profiles:
+            for p in self.profiles:
+                age_str = f", age {p['age']}" if p.get("age") else ""
+                rel_str = f" ({p.get('relationship', '')})" if p.get("relationship") else ""
+                gender_str = f", {p.get('gender', '')}" if p.get("gender") else ""
+                notes_str = f" — notes: {p['notes']}" if p.get("notes") else ""
+                lines.append(f"- {p['name']}{rel_str}{age_str}{gender_str}{notes_str}")
+        else:
+            lines.append("- 1 adult traveler")
+        return "\n".join(lines)
+
+
+class AccommodationSection(PromptSection):
+    def __init__(self, trip: dict, profiles: list[dict]):
+        self.trip = trip
+        self.profiles = profiles
+
+    def render(self) -> str | None:
+        accommodation_type = self.trip.get("accommodation_type")
+        sleeping_rooms = self.trip.get("sleeping_rooms") or []
+
+        if not accommodation_type and not sleeping_rooms:
+            return None
+
         labels = {
             "hotel": "Hotel",
             "vacation_rental": "Vacation rental",
@@ -66,6 +79,7 @@ def build_generation_prompt(
             "friends_family": "Staying with friends/family",
             "other": "Other",
         }
+        lines = ["## Accommodation"]
         if accommodation_type:
             lines.append(f"- Type: {labels.get(accommodation_type, accommodation_type)}")
 
@@ -75,7 +89,7 @@ def build_generation_prompt(
                 "(sleeping bags, tent, sleeping pads, etc.)"
             )
         elif sleeping_rooms:
-            profile_lookup = {p["id"]: p for p in profiles}
+            profile_lookup = {p["id"]: p for p in self.profiles}
             for room in sleeping_rooms:
                 occupants = []
                 for pid in room.get("profile_ids", []):
@@ -94,35 +108,51 @@ def build_generation_prompt(
                 "suggest ONE per room containing a child — not one per traveler. "
                 "For personal sleep items (sleep mask, pillowcase), suggest one per person."
             )
-        lines.append("")
+        return "\n".join(lines)
 
-    lines.append("## Bags Available")
-    if bags:
-        for b in bags:
-            owner = next((p["name"] for p in profiles if p["id"] == b.get("owner_profile_id")), None)
-            owner_str = f" (owned by {owner})" if owner else ""
-            lines.append(f"- {b['name']} [{b['type']}]{owner_str}")
-    else:
-        lines.append("- 1 carry-on bag")
-    lines.append("")
-    lines.append("## Bag Packing Strategy")
-    lines.append("- MAXIMIZE utilization of Carry-on and Personal Item bags. These should be filled first.")
-    lines.append("- Use Checked bags ONLY for overflow items, large liquids, or bulky equipment.")
-    lines.append("- PERSONAL ITEMS (clothing, toiletries, personal electronics, shoes) for a specific traveler MUST be placed into a bag OWNED by that traveler if one exists.")
-    lines.append("- If a traveler does NOT own a bag, place their items in 'Shared' bags (bags listed without an owner).")
-    lines.append("- SHARED ITEMS (sunscreen, first aid, snacks, group games) should be placed in Shared bags.")
-    lines.append("- Do NOT place one person's clothing in another person's carry-on if both have their own carry-on bags available.")
-    lines.append("")
-    # Library items that always pack or match context
-    trip_type = (trip.get("trip_type") or "").lower()
-    weather_data = trip.get("weather_data") or {}
-    is_cold = weather_data.get("min_temp_f", 99) < COLD_THRESHOLD_F
-    is_warm = weather_data.get("max_temp_f", 0) > WARM_THRESHOLD_F
-    is_rain = (weather_data.get("rain_days") or 0) > 0
 
-    def item_matches(item: dict) -> bool:
+class BagsSection(PromptSection):
+    def __init__(self, bags: list[dict], profiles: list[dict]):
+        self.bags = bags
+        self.profiles = profiles
+
+    def render(self) -> str:
+        lines = ["## Bags Available"]
+        if self.bags:
+            for b in self.bags:
+                owner = next((p["name"] for p in self.profiles if p["id"] == b.get("owner_profile_id")), None)
+                owner_str = f" (owned by {owner})" if owner else ""
+                lines.append(f"- {b['name']} [{b['type']}]{owner_str}")
+        else:
+            lines.append("- 1 carry-on bag")
+        lines.extend([
+            "",
+            "## Bag Packing Strategy",
+            "- MAXIMIZE utilization of Carry-on and Personal Item bags. These should be filled first.",
+            "- Use Checked bags ONLY for overflow items, large liquids, or bulky equipment.",
+            "- PERSONAL ITEMS (clothing, toiletries, personal electronics, shoes) for a specific traveler MUST be placed into a bag OWNED by that traveler if one exists.",
+            "- If a traveler does NOT own a bag, place their items in 'Shared' bags (bags listed without an owner).",
+            "- SHARED ITEMS (sunscreen, first aid, snacks, group games) should be placed in Shared bags.",
+            "- Do NOT place one person's clothing in another person's carry-on if both have their own carry-on bags available.",
+        ])
+        return "\n".join(lines)
+
+
+class LibrarySection(PromptSection):
+    def __init__(self, library_items: list[dict], profiles: list[dict], trip: dict):
+        self.library_items = library_items
+        self.profiles = profiles
+        self.trip = trip
+
+    def _item_matches(self, item: dict) -> bool:
         if item.get("always_pack"):
             return True
+        trip_type = (self.trip.get("trip_type") or "").lower()
+        weather_data = self.trip.get("weather_data") or {}
+        is_cold = weather_data.get("min_temp_f", 99) < COLD_THRESHOLD_F
+        is_warm = weather_data.get("max_temp_f", 0) > WARM_THRESHOLD_F
+        is_rain = (weather_data.get("rain_days") or 0) > 0
+
         wt = (item.get("weather_tag") or "any").lower()
         tt = (item.get("trip_type_tag") or "any").lower()
         weather_match = (
@@ -134,68 +164,123 @@ def build_generation_prompt(
         type_match = tt == "any" or tt == trip_type
         return weather_match and type_match
 
-    matching_library = [item for item in library_items if item.get("item_type", "packing") != "task" and item_matches(item)]
-    if matching_library:
-        lines.append("")
-        lines.append("## Custom Items to Include (from user's personal library)")
-        for item in matching_library:
-            profile_name = next(
-                (p["name"] for p in profiles if p["id"] == item.get("assigned_profile_id")), None
+    def render(self) -> str | None:
+        matching_packing = [
+            item for item in self.library_items
+            if item.get("item_type", "packing") != "task" and self._item_matches(item)
+        ]
+        matching_tasks = [
+            item for item in self.library_items
+            if item.get("item_type") == "task" and self._item_matches(item)
+        ]
+
+        if not matching_packing and not matching_tasks:
+            return None
+
+        lines = []
+        if matching_packing:
+            lines.append("## Custom Items to Include (from user's personal library)")
+            for item in matching_packing:
+                profile_name = next(
+                    (p["name"] for p in self.profiles if p["id"] == item.get("assigned_profile_id")), None
+                )
+                profile_str = f" [for {profile_name}]" if profile_name else ""
+                lines.append(f"- {item['name']}{profile_str}")
+
+        if matching_tasks:
+            if lines:
+                lines.append("")
+            lines.append("## Pre-Trip Task Templates to Include (from user's personal library)")
+            lines.append("These MUST be included as 'Pre-Trip Task' category items:")
+            for item in matching_tasks:
+                profile_name = next(
+                    (p["name"] for p in self.profiles if p["id"] == item.get("assigned_profile_id")), None
+                )
+                profile_str = f" [for {profile_name}]" if profile_name else ""
+                lines.append(f"- {item['name']}{profile_str}")
+
+        return "\n".join(lines)
+
+
+class HindsightSection(PromptSection):
+    def __init__(self, exclusions: list[str], inclusions: list[str]):
+        self.exclusions = exclusions
+        self.inclusions = inclusions
+
+    def render(self) -> str | None:
+        if not self.exclusions and not self.inclusions:
+            return None
+
+        lines = []
+        if self.exclusions:
+            lines.append(
+                "## Items the User Did NOT End Up Using on Past Similar Trips (consider omitting unless clearly needed):"
             )
-            profile_str = f" [for {profile_name}]" if profile_name else ""
-            lines.append(f"- {item['name']}{profile_str}")
+            for exc in self.exclusions:
+                lines.append(f"- {exc}")
 
-    # Task templates from user's library
-    matching_tasks = [item for item in library_items if item.get("item_type") == "task" and item_matches(item)]
-    if matching_tasks:
-        lines.append("")
-        lines.append("## Pre-Trip Task Templates to Include (from user's personal library)")
-        lines.append("These MUST be included as 'Pre-Trip Task' category items:")
-        for item in matching_tasks:
-            profile_name = next(
-                (p["name"] for p in profiles if p["id"] == item.get("assigned_profile_id")), None
+        if self.inclusions:
+            if lines:
+                lines.append("")
+            lines.append(
+                "## Items the User Wished They Had Packed on Past Similar Trips (strongly consider including):"
             )
-            profile_str = f" [for {profile_name}]" if profile_name else ""
-            lines.append(f"- {item['name']}{profile_str}")
+            for inc in self.inclusions:
+                lines.append(f"- {inc}")
 
-    if hindsight_exclusions:
-        lines.append("")
-        lines.append(
-            "## Items the User Did NOT End Up Using on Past Similar Trips (consider omitting unless clearly needed):"
-        )
-        for exc in hindsight_exclusions:
-            lines.append(f"- {exc}")
+        return "\n".join(lines)
 
-    if hindsight_inclusions:
-        lines.append("")
-        lines.append(
-            "## Items the User Wished They Had Packed on Past Similar Trips (strongly consider including):"
-        )
-        for inc in hindsight_inclusions:
-            lines.append(f"- {inc}")
 
-    bag_names = [b["name"] for b in bags] if bags else ["Carry-on"]
-    profile_names = [p["name"] for p in profiles] if profiles else ["Traveler"]
+class OutputInstructionsSection(PromptSection):
+    def __init__(self, bags: list[dict], profiles: list[dict]):
+        self.bags = bags
+        self.profiles = profiles
 
-    lines.extend([
-        "",
-        "## Instructions",
-        "Return a JSON object with an 'items' array. Each item must have:",
-        "- item_name: concise name (e.g. 'Passport', 'Running shoes')",
-        f"- category: one of [{', '.join(CATEGORIES)}]",
-        "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
-        f"- suggested_bag_name: one of {bag_names} or null. Follow the Bag Packing Strategy strictly. For 'Pre-Trip Task' items, always use null.",
-        f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad'). Ensure the assigned_profile_name matches the owner of the suggested_bag_name where applicable.",
-        "- quantity: integer or null — the count for ONE person (e.g. 7 socks, 5 underwear for a 7-day trip). Leave null for singular items like passport, charger, hat. Never sum quantities across travelers into one item.",
-        "- reasoning: brief explanation (optional, for debugging). For belongings in bags, briefly mention why this bag was chosen (e.g. 'Carry-on owned by Jane').",
-        "",
-        f"Generate {item_count_range(len(profile_names))[0]}-{item_count_range(len(profile_names))[1]} packing items appropriate for the trip. Include essentials plus context-specific items.",
-        "Additionally, generate 3-6 'Pre-Trip Task' items — practical tasks to complete BEFORE the trip (e.g. 'Charge iPads', 'Check in to flight', 'Download movies for offline viewing', 'Check passport validity', 'Book airport parking'). Adjust based on trip type: for international trips include entry/visa requirement checks; for flights include check-in and electronics charging. These must use category 'Pre-Trip Task' and suggested_bag_name null.",
-        "Always include all library packing items and task templates listed above.",
-        "Return ONLY valid JSON, no markdown fences.",
-    ])
+    def render(self) -> str:
+        bag_names = [b["name"] for b in self.bags] if self.bags else ["Carry-on"]
+        profile_names = [p["name"] for p in self.profiles] if self.profiles else ["Traveler"]
+        min_items, max_items = item_count_range(len(profile_names))
 
-    return "\n".join(lines)
+        lines = [
+            "## Instructions",
+            "Return a JSON object with an 'items' array. Each item must have:",
+            "- item_name: concise name (e.g. 'Passport', 'Running shoes')",
+            f"- category: one of [{', '.join(CATEGORIES)}]",
+            "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
+            f"- suggested_bag_name: one of {bag_names} or null. Follow the Bag Packing Strategy strictly. For 'Pre-Trip Task' items, always use null.",
+            f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad'). Ensure the assigned_profile_name matches the owner of the suggested_bag_name where applicable.",
+            "- quantity: integer or null — the count for ONE person (e.g. 7 socks, 5 underwear for a 7-day trip). Leave null for singular items like passport, charger, hat. Never sum quantities across travelers into one item.",
+            "- reasoning: brief explanation (optional, for debugging). For belongings in bags, briefly mention why this bag was chosen (e.g. 'Carry-on owned by Jane').",
+            "",
+            f"Generate {min_items}-{max_items} packing items appropriate for the trip. Include essentials plus context-specific items.",
+            "Additionally, generate 3-6 'Pre-Trip Task' items — practical tasks to complete BEFORE the trip (e.g. 'Charge iPads', 'Check in to flight', 'Download movies for offline viewing', 'Check passport validity', 'Book airport parking'). Adjust based on trip type: for international trips include entry/visa requirement checks; for flights include check-in and electronics charging. These must use category 'Pre-Trip Task' and suggested_bag_name null.",
+            "Always include all library packing items and task templates listed above.",
+            "Return ONLY valid JSON, no markdown fences.",
+        ]
+        return "\n".join(lines)
+
+
+def build_generation_prompt(
+    trip: dict,
+    profiles: list[dict],
+    bags: list[dict],
+    library_items: list[dict],
+    hindsight_exclusions: list[str],
+    hindsight_inclusions: list[str] = [],
+) -> str:
+    """Compose prompt from discrete section objects."""
+    sections = [
+        SystemInstructionSection(),
+        TripDetailsSection(trip),
+        TravelersSection(profiles),
+        AccommodationSection(trip, profiles),
+        BagsSection(bags, profiles),
+        LibrarySection(library_items, profiles, trip),
+        HindsightSection(hindsight_exclusions, hindsight_inclusions),
+        OutputInstructionsSection(bags, profiles),
+    ]
+    rendered = [s.render() for s in sections]
+    return "\n\n".join(r for r in rendered if r is not None)
 
 
 def _weather_flags(weather_data: dict | None) -> dict:
