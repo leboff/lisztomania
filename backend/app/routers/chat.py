@@ -1,42 +1,14 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from app.dependencies import get_current_user, check_trip_access
 from app.schemas.chat import ChatMessageCreate, ChatMessageResponse
 from app.services.supabase_client import get_supabase
-from app.services.chat_service import build_chat_context, chat_completion
+from app.services.chat_service import fetch_trip_context, build_chat_context, chat_completion
 
 router = APIRouter(prefix="/trips/{trip_id}/chat", tags=["chat"])
 
 MAX_HISTORY = 20
-
-
-def _fetch_trip_context(db, trip_id: str, user_id: str):
-    """Fetch trip and all context needed for chat."""
-    trip = check_trip_access(trip_id, user_id, db)
-
-    # Profiles
-    tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
-    profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
-    profiles = []
-    if profile_ids:
-        p_result = db.table("profiles").select("*").in_("id", profile_ids).execute()
-        profiles = p_result.data or []
-
-    # Bags
-    bags = (db.table("bags").select("*").eq("trip_id", trip_id).execute()).data or []
-
-    # Checklist items
-    checklist_items = (
-        db.table("checklist_items")
-        .select("*")
-        .eq("trip_id", trip_id)
-        .order("sort_order")
-        .order("created_at")
-        .execute()
-    ).data or []
-
-    return trip, profiles, bags, checklist_items
 
 
 @router.get("", response_model=list[ChatMessageResponse])
@@ -45,10 +17,7 @@ async def get_chat_history(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_supabase()
-    user_id = current_user["id"]
-
-    check_trip_access(trip_id, user_id, db)
-
+    check_trip_access(trip_id, current_user["id"], db)
     result = (
         db.table("chat_messages")
         .select("*")
@@ -69,7 +38,7 @@ async def send_chat_message(
     db = get_supabase()
     user_id = current_user["id"]
 
-    trip, profiles, bags, checklist_items = _fetch_trip_context(db, trip_id, user_id)
+    trip, profiles, bags, checklist_items = fetch_trip_context(db, trip_id, user_id)
 
     # Save user message
     db.table("chat_messages").insert({
@@ -91,7 +60,6 @@ async def send_chat_message(
     history_rows = list(reversed(history_result.data or []))
     messages = [{"role": r["role"], "content": r["content"]} for r in history_rows]
 
-    # Build system prompt with current trip context
     system_prompt = build_chat_context(trip, profiles, bags, checklist_items)
 
     async def generate():
@@ -104,7 +72,6 @@ async def send_chat_message(
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
             return
 
-        # Save assistant message
         result = db.table("chat_messages").insert({
             "trip_id": trip_id,
             "user_id": user_id,
@@ -124,9 +91,6 @@ async def clear_chat_history(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_supabase()
-    user_id = current_user["id"]
-
-    check_trip_access(trip_id, user_id, db)
-
+    check_trip_access(trip_id, current_user["id"], db)
     db.table("chat_messages").delete().eq("trip_id", trip_id).execute()
     return {"ok": True}
