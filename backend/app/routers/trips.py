@@ -148,53 +148,30 @@ async def copy_trip(
     new_trip_data["hindsight_completed"] = False
     new_trip_data["collaborator_ids"] = []
 
-    new_trip_result = db.table("trips").insert(new_trip_data).execute()
-    new_trip = new_trip_result.data[0]
-    new_trip_id = new_trip["id"]
-
-    # Copy trip_profiles
+    # Gather source data for the atomic copy before any writes
     tp_result = db.table("trip_profiles").select("profile_id").eq("trip_id", trip_id).execute()
-    if tp_result.data:
-        tp_rows = [{"trip_id": new_trip_id, "profile_id": r["profile_id"]} for r in tp_result.data]
-        db.table("trip_profiles").insert(tp_rows).execute()
+    profile_ids = [r["profile_id"] for r in (tp_result.data or [])]
 
-    # Copy bags and build old→new id map
     bags_result = db.table("bags").select("*").eq("trip_id", trip_id).execute()
-    bag_id_map: dict[str, str] = {}
-    if bags_result.data:
-        for bag in bags_result.data:
-            new_bag = db.table("bags").insert({
-                "trip_id": new_trip_id,
-                "name": bag["name"],
-                "type": bag["type"],
-                "owner_profile_id": bag.get("owner_profile_id"),
-            }).execute()
-            bag_id_map[bag["id"]] = new_bag.data[0]["id"]
+    source_bags = bags_result.data or []
 
-    # Optionally copy checklist items
+    source_items = []
     if body.copy_checklist:
         items_result = db.table("checklist_items").select("*").eq("trip_id", trip_id).execute()
-        if items_result.data:
-            item_rows = []
-            for item in items_result.data:
-                item_rows.append({
-                    "trip_id": new_trip_id,
-                    "item_name": item["item_name"],
-                    "category": item.get("category"),
-                    "timing_attribute": item.get("timing_attribute"),
-                    "assigned_profile_id": item.get("assigned_profile_id"),
-                    "bag_id": bag_id_map.get(item["bag_id"]) if item.get("bag_id") else None,
-                    "quantity": item.get("quantity"),
-                    "reasoning": item.get("reasoning"),
-                    "source": item.get("source", "manual"),
-                    "sort_order": item.get("sort_order"),
-                    "is_checked": False,
-                    "was_unused": False,
-                    "was_wished_for": False,
-                })
-            db.table("checklist_items").insert(item_rows).execute()
+        source_items = items_result.data or []
 
-    return _enrich_trip(new_trip, db)
+    # Atomically create the new trip, copy profiles/bags/checklist in one transaction.
+    # Without this, a failure mid-copy would leave a trip with bags but no checklist items.
+    new_trip_id = db.rpc("copy_trip_atomic", {
+        "p_new_trip": new_trip_data,
+        "p_profile_ids": profile_ids,
+        "p_bags": source_bags,
+        "p_items": source_items,
+        "p_copy_checklist": body.copy_checklist,
+    }).execute().data
+
+    new_trip_result = db.table("trips").select("*").eq("id", new_trip_id).single().execute()
+    return _enrich_trip(new_trip_result.data, db)
 
 
 @router.post("/{trip_id}/collaborators", response_model=TripResponse)

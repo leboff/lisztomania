@@ -140,10 +140,7 @@ async def generate_trip_checklist(
         bag_map = {b["name"].lower().strip(): b["id"] for b in bags}
         profile_map = {p["name"].lower().strip(): p["id"] for p in profiles}
 
-        # Delete any existing LLM-generated items before inserting fresh ones
-        db.table("checklist_items").delete().eq("trip_id", trip_id).eq("source", "llm").execute()
-
-        # Insert new items
+        # Build item rows for atomic replacement
         rows = []
         for i, item in enumerate(llm_response.items):
             bag_id = None
@@ -155,7 +152,6 @@ async def generate_trip_checklist(
                 profile_id = profile_map.get(item.assigned_profile_name.lower().strip())
 
             rows.append({
-                "trip_id": trip_id,
                 "item_name": item.item_name,
                 "category": item.category,
                 "timing_attribute": item.timing_attribute,
@@ -167,8 +163,9 @@ async def generate_trip_checklist(
                 "sort_order": i,
             })
 
-        if rows:
-            db.table("checklist_items").insert(rows).execute()
+        # Atomically delete old LLM items and insert new ones in a single transaction.
+        # Without this, a failure between delete and insert would permanently erase the checklist.
+        db.rpc("replace_checklist_items", {"p_trip_id": trip_id, "p_items": rows}).execute()
 
         db.table("trips").update({"generation_status": "complete"}).eq("id", trip_id).execute()
 
