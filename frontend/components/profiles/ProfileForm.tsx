@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { profilesService } from "@/services/profiles.service";
+import { useFormState } from "@/hooks/useFormState";
 import type { Profile, BagType, ProfileBag } from "@/types";
 
 interface Props {
@@ -22,11 +23,13 @@ function calcAge(birthday: string): number | null {
 const maxDate = new Date().toISOString().split("T")[0];
 
 export function ProfileForm({ profile, onSave, onCancel }: Props) {
-  const [name, setName] = useState(profile?.name ?? "");
-  const [birthday, setBirthday] = useState(profile?.birthday ?? "");
-  const [gender, setGender] = useState<Profile["gender"]>(profile?.gender ?? null);
-  const [relationship, setRelationship] = useState<Profile["relationship"]>(profile?.relationship ?? null);
-  const [notes, setNotes] = useState(profile?.notes ?? "");
+  const { data: formData, updateField } = useFormState({
+    name: profile?.name ?? "",
+    birthday: profile?.birthday ?? "",
+    gender: (profile?.gender ?? null) as Profile["gender"],
+    relationship: (profile?.relationship ?? null) as Profile["relationship"],
+    notes: profile?.notes ?? "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +38,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
   const [newBagSize, setNewBagSize] = useState("");
   const [bagLoading, setBagLoading] = useState(false);
 
-  const computedAge = calcAge(birthday);
+  const computedAge = calcAge(formData.birthday);
 
   const handleAddBag = async () => {
     if (!newBagType) return;
@@ -72,17 +75,17 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!formData.name.trim()) return;
     setSaving(true);
     setError("");
     try {
       const data = {
-        name: name.trim(),
-        birthday: birthday || null,
+        name: formData.name.trim(),
+        birthday: formData.birthday || null,
         age: computedAge,
-        gender,
-        relationship,
-        notes: notes.trim() || null,
+        gender: formData.gender,
+        relationship: formData.relationship,
+        notes: formData.notes.trim() || null,
       };
       if (profile) {
         await profilesService.update(profile.id, data);
@@ -108,8 +111,8 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Name *</label>
         <input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formData.name}
+          onChange={(e) => updateField("name", e.target.value)}
           required
           className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
           placeholder="e.g. Sarah"
@@ -125,8 +128,8 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
         </label>
         <input
           type="date"
-          value={birthday}
-          onChange={(e) => setBirthday(e.target.value)}
+          value={formData.birthday}
+          onChange={(e) => updateField("birthday", e.target.value)}
           max={maxDate}
           className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
         />
@@ -139,9 +142,9 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
             <button
               key={r}
               type="button"
-              onClick={() => setRelationship(r)}
+              onClick={() => updateField("relationship", r)}
               className={`rounded-lg py-2 text-sm capitalize ${
-                relationship === r ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                formData.relationship === r ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
               }`}
             >
               {r}
@@ -157,9 +160,9 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
             <button
               key={g}
               type="button"
-              onClick={() => setGender(g)}
+              onClick={() => updateField("gender", g)}
               className={`rounded-lg py-2 text-xs capitalize ${
-                gender === g ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                formData.gender === g ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
               }`}
             >
               {g.replace(/_/g, " ")}
@@ -171,8 +174,8 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Notes</label>
         <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          value={formData.notes}
+          onChange={(e) => updateField("notes", e.target.value)}
           rows={3}
           className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none"
           placeholder="e.g. potty trained, doesn't need a stroller, allergic to peanuts…"
@@ -247,7 +250,7 @@ export function ProfileForm({ profile, onSave, onCancel }: Props) {
         </button>
         <button
           type="submit"
-          disabled={saving || !name.trim()}
+          disabled={saving || !formData.name.trim()}
           className="flex-1 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white disabled:opacity-40"
         >
           {saving ? "Saving…" : "Save"}

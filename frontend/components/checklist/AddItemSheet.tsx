@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import type { Bag, Profile, LibraryItem } from "@/types";
 import { CATEGORIES } from "@/lib/constants";
+import { useFormState } from "@/hooks/useFormState";
 
 interface Props {
   open: boolean;
@@ -21,17 +22,19 @@ interface Props {
 
 export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAdd, defaultTab }: Props) {
   const [mode, setMode] = useState<"new" | "library">("new");
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState(defaultTab === "tasks" ? "Pre-Trip Task" : "");
-  const [bagId, setBagId] = useState("");
-  const [profileId, setProfileId] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const { data: formData, updateField, setData: setFormData } = useFormState({
+    name: "",
+    category: defaultTab === "tasks" ? "Pre-Trip Task" : "",
+    bagId: "",
+    profileId: "",
+    quantity: "",
+  });
   const [saving, setSaving] = useState(false);
 
   // Sync category if defaultTab changes when opening
   useEffect(() => {
     if (open) {
-      setCategory(defaultTab === "tasks" ? "Pre-Trip Task" : "");
+      setFormData((prev) => ({ ...prev, category: defaultTab === "tasks" ? "Pre-Trip Task" : "" }));
       setMode("new");
     }
   }, [open, defaultTab]);
@@ -39,21 +42,17 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
   if (!open) return null;
 
   const handleAdd = async () => {
-    if (!name.trim()) return;
+    if (!formData.name.trim()) return;
     setSaving(true);
-    const qty = parseInt(quantity);
+    const qty = parseInt(formData.quantity);
     await onAdd({
-      item_name: name.trim(),
-      category: category || undefined,
-      bag_id: bagId || undefined,
-      assigned_profile_id: profileId || undefined,
+      item_name: formData.name.trim(),
+      category: formData.category || undefined,
+      bag_id: formData.bagId || undefined,
+      assigned_profile_id: formData.profileId || undefined,
       quantity: qty >= 1 ? qty : undefined,
     });
-    setName("");
-    setCategory("");
-    setBagId("");
-    setProfileId("");
-    setQuantity("");
+    setFormData({ name: "", category: "", bagId: "", profileId: "", quantity: "" });
     setSaving(false);
     onClose();
   };
@@ -139,16 +138,16 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={formData.name}
+                  onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Item name"
                   autoFocus
                   className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 />
                 <input
                   type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  value={formData.quantity}
+                  onChange={(e) => updateField("quantity", e.target.value)}
                   placeholder="Qty"
                   min="1"
                   className="w-20 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-3 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
@@ -156,8 +155,8 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
               </div>
 
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                value={formData.category}
+                onChange={(e) => updateField("category", e.target.value)}
                 className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
               >
                 <option value="">Category (optional)</option>
@@ -166,10 +165,10 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
                 ))}
               </select>
 
-              {bags.length > 0 && category !== "Pre-Trip Task" && (
+              {bags.length > 0 && formData.category !== "Pre-Trip Task" && (
                 <select
-                  value={bagId}
-                  onChange={(e) => setBagId(e.target.value)}
+                  value={formData.bagId}
+                  onChange={(e) => updateField("bagId", e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                 >
                   <option value="">Bag (optional)</option>
@@ -181,8 +180,8 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
 
               {profiles.length > 0 && (
                 <select
-                  value={profileId}
-                  onChange={(e) => setProfileId(e.target.value)}
+                  value={formData.profileId}
+                  onChange={(e) => updateField("profileId", e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500"
                 >
                   <option value="">Person (optional)</option>
@@ -194,7 +193,7 @@ export function AddItemSheet({ open, onClose, bags, profiles, libraryItems, onAd
 
               <button
                 onClick={handleAdd}
-                disabled={!name.trim() || saving}
+                disabled={!formData.name.trim() || saving}
                 className="w-full rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white disabled:opacity-40 hover:bg-indigo-600"
               >
                 {saving ? "Adding…" : "Add item"}
