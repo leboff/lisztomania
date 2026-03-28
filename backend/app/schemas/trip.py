@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import date, datetime
 from typing import Literal
 
@@ -12,6 +12,13 @@ class TripCreate(BaseModel):
     destination: str
     start_date: date
     end_date: date
+
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def parse_date(cls, v):
+        if isinstance(v, str):
+            return date.fromisoformat(v)
+        return v
     trip_type: str | None = None
     trip_events: list[str] = []
     profile_ids: list[str] = []
@@ -33,6 +40,13 @@ class TripUpdate(BaseModel):
     destination: str | None = None
     start_date: date | None = None
     end_date: date | None = None
+
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def parse_date(cls, v):
+        if isinstance(v, str):
+            return date.fromisoformat(v)
+        return v
     trip_type: str | None = None
     trip_events: list[str] | None = None
     weather_summary: str | None = None
@@ -87,3 +101,10 @@ class TripCopyOptions(BaseModel):
     end_date: date
     name: str | None = None
     copy_checklist: bool = False
+
+    @field_validator("start_date", "end_date", mode="before")
+    @classmethod
+    def parse_date(cls, v):
+        if isinstance(v, str):
+            return date.fromisoformat(v)
+        return v

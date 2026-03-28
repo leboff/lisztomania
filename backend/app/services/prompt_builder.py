@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from datetime import date
 from app.constants import (
     CATEGORIES,
     COLD_THRESHOLD_F,
     WARM_THRESHOLD_F,
     item_count_range,
 )
+from app.utils.dates import trip_duration_days
 
 
 class PromptSection(ABC):
@@ -26,9 +26,7 @@ class TripDetailsSection(PromptSection):
 
     def render(self) -> str:
         trip = self.trip
-        duration = (
-            (date.fromisoformat(str(trip["end_date"])) - date.fromisoformat(str(trip["start_date"]))).days + 1
-        )
+        duration = trip_duration_days(trip["start_date"], trip["end_date"])
         lines = [
             "## Trip Details",
             f"- Origin: {trip.get('origin', 'Unknown')}",
