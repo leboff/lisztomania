@@ -28,6 +28,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* Safe area support */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
