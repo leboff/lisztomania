@@ -25,7 +25,9 @@ export interface TripFormData {
   weather_summary: string;
   weather_data: Record<string, unknown>;
   accommodation_id: string | null;
+  accommodation_name: string | null;
   accommodation_type: AccommodationType | null;
+  accommodation_notes: string | null;
   sleeping_rooms: SleepingRoom[];
   origin_city: string | null;
   origin_state: string | null;
@@ -45,7 +47,9 @@ export function TripWizard() {
     bags: [],
     trip_events: [],
     accommodation_id: null,
+    accommodation_name: null,
     accommodation_type: null,
+    accommodation_notes: null,
     sleeping_rooms: [],
   });
   const [tripId, setTripId] = useState<string | null>(null);
@@ -72,7 +76,9 @@ export function TripWizard() {
         trip_events: data.trip_events ?? [],
         profile_ids: data.profile_ids ?? [],
         accommodation_id: data.accommodation_id ?? null,
+        accommodation_name: data.accommodation_name ?? null,
         accommodation_type: data.accommodation_type ?? null,
+        accommodation_notes: data.accommodation_notes ?? null,
         sleeping_rooms: data.sleeping_rooms ?? [],
         origin_city: data.origin_city,
         origin_state: data.origin_state,

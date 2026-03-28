@@ -98,7 +98,9 @@ export interface Trip {
   created_at: string | null;
   profile_ids: string[];
   accommodation_id: string | null;
+  accommodation_name: string | null;
   accommodation_type: AccommodationType | null;
+  accommodation_notes: string | null;
   sleeping_rooms: SleepingRoom[] | null;
   origin_city: string | null;
   origin_state: string | null;

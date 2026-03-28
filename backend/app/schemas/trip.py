@@ -24,7 +24,9 @@ class TripCreate(BaseModel):
     profile_ids: list[str] = []
     template_trip_id: str | None = None
     accommodation_id: str | None = None
+    accommodation_name: str | None = None
     accommodation_type: str | None = None
+    accommodation_notes: str | None = None
     sleeping_rooms: list[dict] = []
     origin_city: str | None = None
     origin_state: str | None = None
@@ -52,7 +54,9 @@ class TripUpdate(BaseModel):
     weather_summary: str | None = None
     weather_data: dict | None = None
     accommodation_id: str | None = None
+    accommodation_name: str | None = None
     accommodation_type: str | None = None
+    accommodation_notes: str | None = None
     sleeping_rooms: list[dict] | None = None
     origin_city: str | None = None
     origin_state: str | None = None
@@ -82,7 +86,9 @@ class TripResponse(BaseModel):
     created_at: datetime | None = None
     profile_ids: list[str] = []
     accommodation_id: str | None = None
+    accommodation_name: str | None = None
     accommodation_type: str | None = None
+    accommodation_notes: str | None = None
     sleeping_rooms: list[dict] | None = None
     origin_city: str | None = None
     origin_state: str | None = None

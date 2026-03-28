@@ -73,7 +73,7 @@ async def copy_trip(
 
     copy_fields = [
         "origin", "destination", "trip_type", "trip_events",
-        "accommodation_id", "accommodation_type", "sleeping_rooms",
+        "accommodation_id", "accommodation_name", "accommodation_type", "accommodation_notes", "sleeping_rooms",
         "origin_city", "origin_state", "origin_country",
         "destination_city", "destination_state", "destination_country",
     ]

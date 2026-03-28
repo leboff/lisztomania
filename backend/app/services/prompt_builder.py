@@ -65,9 +65,11 @@ class AccommodationSection(PromptSection):
 
     def render(self) -> str | None:
         accommodation_type = self.trip.get("accommodation_type")
+        accommodation_name = self.trip.get("accommodation_name")
+        accommodation_notes = self.trip.get("accommodation_notes")
         sleeping_rooms = self.trip.get("sleeping_rooms") or []
 
-        if not accommodation_type and not sleeping_rooms:
+        if not accommodation_type and not sleeping_rooms and not accommodation_name and not accommodation_notes:
             return None
 
         labels = {
@@ -78,8 +80,12 @@ class AccommodationSection(PromptSection):
             "other": "Other",
         }
         lines = ["## Accommodation"]
+        if accommodation_name:
+            lines.append(f"- Property: {accommodation_name}")
         if accommodation_type:
             lines.append(f"- Type: {labels.get(accommodation_type, accommodation_type)}")
+        if accommodation_notes:
+            lines.append(f"- Notes: {accommodation_notes}")
 
         if accommodation_type == "camping":
             lines.append(
