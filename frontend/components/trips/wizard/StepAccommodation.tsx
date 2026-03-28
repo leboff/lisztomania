@@ -190,6 +190,35 @@ export function StepAccommodation({ data, onUpdate, onNext, onBack }: Props) {
         </div>
       </div>
 
+      {/* Property name — shown when no saved accommodation selected */}
+      {!data.accommodation_id && data.accommodation_type && (
+        <div className="mb-5">
+          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Property name <span className="font-normal text-gray-400">(optional)</span></p>
+          <input
+            type="text"
+            value={data.accommodation_name ?? ""}
+            onChange={(e) => onUpdate({ accommodation_name: e.target.value || null })}
+            placeholder="e.g. Marriott Grande Vista, Airbnb on Oak St"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-indigo-500"
+          />
+          <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">Naming the property helps us tailor suggestions using its known amenities.</p>
+        </div>
+      )}
+
+      {/* Accommodation notes */}
+      {data.accommodation_type && (
+        <div className="mb-5">
+          <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Notes <span className="font-normal text-gray-400">(optional)</span></p>
+          <textarea
+            value={data.accommodation_notes ?? ""}
+            onChange={(e) => onUpdate({ accommodation_notes: e.target.value || null })}
+            placeholder="e.g. all-inclusive, in-room kitchen, washer/dryer in unit, pool on site"
+            rows={2}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-indigo-500 resize-none"
+          />
+        </div>
+      )}
+
       {/* Room assignment — hidden for camping or solo */}
       {!isCamping && !isSolo && (
         <div className="mb-4">
