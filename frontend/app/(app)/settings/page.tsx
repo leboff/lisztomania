@@ -17,6 +17,8 @@ export default function SettingsPage() {
 
   const [llmBaseUrl, setLlmBaseUrl] = useState("");
   const [llmModel, setLlmModel] = useState("");
+  const [chatLlmBaseUrl, setChatLlmBaseUrl] = useState("");
+  const [chatLlmModel, setChatLlmModel] = useState("");
   const [llmSaving, setLlmSaving] = useState(false);
   const [llmSaved, setLlmSaved] = useState(false);
 
@@ -35,6 +37,8 @@ export default function SettingsPage() {
       adminService.getLLMConfig().then((c) => {
         setLlmBaseUrl(c.llm_base_url);
         setLlmModel(c.llm_model);
+        setChatLlmBaseUrl(c.chat_llm_base_url);
+        setChatLlmModel(c.chat_llm_model);
       }).catch(() => {});
     }
   }, [profile?.is_admin]);
@@ -56,7 +60,7 @@ export default function SettingsPage() {
   const handleSaveLLMConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     setLlmSaving(true);
-    await adminService.updateLLMConfig({ llm_base_url: llmBaseUrl, llm_model: llmModel });
+    await adminService.updateLLMConfig({ llm_base_url: llmBaseUrl, llm_model: llmModel, chat_llm_base_url: chatLlmBaseUrl, chat_llm_model: chatLlmModel });
     setLlmSaving(false);
     setLlmSaved(true);
     setTimeout(() => setLlmSaved(false), 2000);
@@ -141,6 +145,7 @@ export default function SettingsPage() {
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
             <p className="mb-3 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide font-medium">LLM Configuration</p>
             <form onSubmit={handleSaveLLMConfig} className="space-y-4">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Generation model</p>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Base URL</label>
                 <input
@@ -157,6 +162,27 @@ export default function SettingsPage() {
                   type="text"
                   value={llmModel}
                   onChange={(e) => setLlmModel(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  placeholder="e.g. gpt-4o-mini"
+                />
+              </div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 pt-2">Chat model <span className="font-normal text-gray-400 dark:text-gray-500">(leave blank to use generation model)</span></p>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Base URL</label>
+                <input
+                  type="text"
+                  value={chatLlmBaseUrl}
+                  onChange={(e) => setChatLlmBaseUrl(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                  placeholder="Leave blank to inherit generation base URL"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Model</label>
+                <input
+                  type="text"
+                  value={chatLlmModel}
+                  onChange={(e) => setChatLlmModel(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   placeholder="e.g. gpt-4o-mini"
                 />
