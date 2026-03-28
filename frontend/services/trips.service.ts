@@ -14,7 +14,9 @@ export const tripsService = {
     trip_events?: string[];
     profile_ids?: string[];
     accommodation_id?: string | null;
+    accommodation_name?: string | null;
     accommodation_type?: AccommodationType | null;
+    accommodation_notes?: string | null;
     sleeping_rooms?: SleepingRoom[];
     origin_city?: string | null;
     origin_state?: string | null;
