@@ -83,7 +83,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false, 
         </div>
 
         {/* Day-by-day scroll */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}>
           {forecasts.map((day) => {
             const { weekday, monthDay } = formatDate(day.date);
             const emoji = WEATHER_ICON_EMOJI[day.icon] ?? "🌡️";
