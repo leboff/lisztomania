@@ -10,6 +10,8 @@ export interface User {
 export interface LLMConfig {
   llm_base_url: string;
   llm_model: string;
+  chat_llm_base_url: string;
+  chat_llm_model: string;
   source: string;
 }
 

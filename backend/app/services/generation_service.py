@@ -60,13 +60,7 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
 
         prompt = build_generation_prompt(trip, profiles, bags, library_items, hindsight_exclusions, hindsight_inclusions)
 
-        from app.services.admin_service import get_llm_config
-        llm_config = get_llm_config()
-        llm_response = await generate_checklist(
-            prompt,
-            llm_base_url=llm_config["llm_base_url"] or None,
-            llm_model=llm_config["llm_model"],
-        )
+        llm_response = await generate_checklist(prompt)
 
         bag_map = {b["name"].lower().strip(): b["id"] for b in bags}
         profile_map = {p["name"].lower().strip(): p["id"] for p in profiles}
@@ -143,13 +137,7 @@ async def run_weather_refresh(trip_id: str, trip: dict) -> dict:
     )
 
     try:
-        from app.services.admin_service import get_llm_config
-        llm_config = get_llm_config()
-        llm_response = await generate_weather_suggestions(
-            prompt,
-            llm_base_url=llm_config["llm_base_url"] or None,
-            llm_model=llm_config["llm_model"],
-        )
+        llm_response = await generate_weather_suggestions(prompt)
         suggestions = llm_response.suggestions
     except Exception:
         suggestions = []

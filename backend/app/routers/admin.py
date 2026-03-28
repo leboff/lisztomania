@@ -16,5 +16,5 @@ async def update_llm_configuration(
     body: LLMConfig,
     current_user: dict = Depends(require_admin),
 ):
-    set_llm_config(body.llm_base_url, body.llm_model)
+    set_llm_config(body.llm_base_url, body.llm_model, body.chat_llm_base_url, body.chat_llm_model)
     return get_llm_config()
