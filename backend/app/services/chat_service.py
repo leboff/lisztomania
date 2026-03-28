@@ -1,7 +1,6 @@
 from openai import AsyncOpenAI
-from app.config import settings
-from app.constants import DEFAULT_CHAT_TEMPERATURE
 from app.dependencies import check_trip_access
+from app.services.llm_config import resolve_llm_config
 from app.repositories.trip_repository import TripRepository
 from app.repositories.profile_repository import ProfileRepository
 from app.repositories.bag_repository import BagRepository
@@ -109,21 +108,19 @@ async def chat_completion(
     """
     Call the chat LLM (with fallback to generation LLM config) and yield streaming chunks.
     """
-    api_key = settings.chat_openai_api_key or settings.openai_api_key or "no-key"
-    base_url = settings.chat_llm_base_url or settings.llm_base_url or None
-    model = settings.chat_llm_model or settings.llm_model
+    config = resolve_llm_config("chat")
 
-    client_kwargs: dict = {"api_key": api_key}
-    if base_url:
-        client_kwargs["base_url"] = base_url
+    client_kwargs: dict = {"api_key": config.api_key}
+    if config.base_url:
+        client_kwargs["base_url"] = config.base_url
     client = AsyncOpenAI(**client_kwargs)
 
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
     stream = await client.chat.completions.create(
-        model=model,
+        model=config.model,
         messages=all_messages,
-        temperature=DEFAULT_CHAT_TEMPERATURE,
+        temperature=config.temperature,
         stream=True,
     )
 

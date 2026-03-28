@@ -1,21 +1,18 @@
 import json
 from openai import AsyncOpenAI
-from app.config import settings
-from app.constants import DEFAULT_GENERATION_TEMPERATURE
 from app.schemas.generation import LLMGenerationResponse, LLMChecklistItem, LLMWeatherSuggestionsResponse
+from app.services.llm_config import resolve_llm_config
 
 
 async def generate_checklist(
     prompt: str,
-    llm_base_url: str | None = None,
-    llm_model: str | None = None,
 ) -> LLMGenerationResponse:
     """
     Call an OpenAI-compatible API with the assembled prompt using structured JSON output.
     Validates the response against LLMGenerationResponse Pydantic schema.
     Retries once on validation failure.
 
-    Configure via .env (or override via llm_base_url/llm_model parameters):
+    Configure via .env or the admin panel:
       OPENAI_API_KEY   — required (even for non-OpenAI providers, set to their key)
       LLM_BASE_URL     — optional; overrides the default OpenAI endpoint.
                          Examples:
@@ -24,12 +21,11 @@ async def generate_checklist(
                            https://openrouter.ai/api/v1     (OpenRouter)
       LLM_MODEL        — model name to use (default: gpt-4o-mini)
     """
-    effective_base_url = llm_base_url or settings.llm_base_url
-    effective_model = llm_model or settings.llm_model
+    config = resolve_llm_config("generation")
 
-    client_kwargs: dict = {"api_key": settings.openai_api_key or "no-key"}
-    if effective_base_url:
-        client_kwargs["base_url"] = effective_base_url
+    client_kwargs: dict = {"api_key": config.api_key}
+    if config.base_url:
+        client_kwargs["base_url"] = config.base_url
     client = AsyncOpenAI(**client_kwargs)
 
     schema = {
@@ -69,28 +65,28 @@ async def generate_checklist(
     ]
 
     # Providers that support structured output (json_schema response_format)
-    use_json_schema = not effective_base_url or "openai.com" in effective_base_url
+    use_json_schema = not config.base_url or "openai.com" in config.base_url
 
     for attempt in range(2):
         try:
             if use_json_schema:
                 response = await client.chat.completions.create(
-                    model=effective_model,
+                    model=config.model,
                     messages=messages,
                     response_format={
                         "type": "json_schema",
                         "json_schema": {"name": "packing_list", "strict": True, "schema": schema},
                     },
-                    temperature=DEFAULT_GENERATION_TEMPERATURE,
+                    temperature=config.temperature,
                 )
             else:
                 # Fallback for providers that only support json_object mode
                 # (Ollama, Groq, OpenRouter with many models, etc.)
                 response = await client.chat.completions.create(
-                    model=effective_model,
+                    model=config.model,
                     messages=messages,
                     response_format={"type": "json_object"},
-                    temperature=DEFAULT_GENERATION_TEMPERATURE,
+                    temperature=config.temperature,
                 )
             raw = response.choices[0].message.content
             data = json.loads(raw)
@@ -111,19 +107,16 @@ async def generate_checklist(
 
 async def generate_weather_suggestions(
     prompt: str,
-    llm_base_url: str | None = None,
-    llm_model: str | None = None,
 ) -> LLMWeatherSuggestionsResponse:
     """
     Call the LLM with a weather-delta prompt and return suggested item changes.
     Same retry-once pattern as generate_checklist.
     """
-    effective_base_url = llm_base_url or settings.llm_base_url
-    effective_model = llm_model or settings.llm_model
+    config = resolve_llm_config("generation")
 
-    client_kwargs: dict = {"api_key": settings.openai_api_key or "no-key"}
-    if effective_base_url:
-        client_kwargs["base_url"] = effective_base_url
+    client_kwargs: dict = {"api_key": config.api_key}
+    if config.base_url:
+        client_kwargs["base_url"] = config.base_url
     client = AsyncOpenAI(**client_kwargs)
 
     schema = {
@@ -163,26 +156,26 @@ async def generate_weather_suggestions(
         {"role": "user", "content": prompt},
     ]
 
-    use_json_schema = not effective_base_url or "openai.com" in effective_base_url
+    use_json_schema = not config.base_url or "openai.com" in config.base_url
 
     for attempt in range(2):
         try:
             if use_json_schema:
                 response = await client.chat.completions.create(
-                    model=effective_model,
+                    model=config.model,
                     messages=messages,
                     response_format={
                         "type": "json_schema",
                         "json_schema": {"name": "weather_suggestions", "strict": True, "schema": schema},
                     },
-                    temperature=DEFAULT_GENERATION_TEMPERATURE,
+                    temperature=config.temperature,
                 )
             else:
                 response = await client.chat.completions.create(
-                    model=effective_model,
+                    model=config.model,
                     messages=messages,
                     response_format={"type": "json_object"},
-                    temperature=DEFAULT_GENERATION_TEMPERATURE,
+                    temperature=config.temperature,
                 )
             raw = response.choices[0].message.content
             data = json.loads(raw)
