@@ -7,6 +7,7 @@ from app.repositories.profile_repository import ProfileRepository
 from app.repositories.bag_repository import BagRepository
 from app.repositories.checklist_repository import ChecklistRepository
 from app.services import trip_service
+from app.utils.dates import to_iso_string
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -20,8 +21,8 @@ async def list_trips(current_user: dict = Depends(get_current_user)):
 async def create_trip(body: TripCreate, current_user: dict = Depends(get_current_user)):
     trip_data = body.model_dump(exclude={"profile_ids"})
     trip_data["user_id"] = current_user["id"]
-    trip_data["start_date"] = str(trip_data["start_date"])
-    trip_data["end_date"] = str(trip_data["end_date"])
+    trip_data["start_date"] = to_iso_string(trip_data["start_date"])
+    trip_data["end_date"] = to_iso_string(trip_data["end_date"])
     trip_data["collaborator_ids"] = []
     trip_data["generation_status"] = "pending"
     return trip_service.create_trip(trip_data, body.profile_ids or [])
@@ -50,9 +51,9 @@ async def update_trip(
     check_trip_access(trip_id, current_user["id"])
     update_data = body.model_dump(exclude_none=True)
     if "start_date" in update_data:
-        update_data["start_date"] = str(update_data["start_date"])
+        update_data["start_date"] = to_iso_string(update_data["start_date"])
     if "end_date" in update_data:
-        update_data["end_date"] = str(update_data["end_date"])
+        update_data["end_date"] = to_iso_string(update_data["end_date"])
     updated = TripRepository().update(trip_id, update_data)
     return trip_service.enrich_trip(updated)
 
@@ -79,8 +80,8 @@ async def copy_trip(
     new_trip_data = {k: source[k] for k in copy_fields if k in source}
     new_trip_data["user_id"] = uid
     new_trip_data["name"] = body.name or source.get("name")
-    new_trip_data["start_date"] = str(body.start_date)
-    new_trip_data["end_date"] = str(body.end_date)
+    new_trip_data["start_date"] = to_iso_string(body.start_date)
+    new_trip_data["end_date"] = to_iso_string(body.end_date)
     new_trip_data["template_trip_id"] = trip_id
     new_trip_data["generation_status"] = "complete" if body.copy_checklist else "pending"
     new_trip_data["hindsight_completed"] = False
