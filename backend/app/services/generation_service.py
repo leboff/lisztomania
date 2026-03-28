@@ -1,6 +1,8 @@
 import logging
 import time
 from datetime import date
+import httpx
+import openai
 from fastapi import HTTPException
 
 logger = logging.getLogger("generation")
@@ -133,14 +135,37 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
 
         return {"trip_id": trip_id, "items_generated": len(rows), "generation_status": "complete"}
 
-    except Exception as e:
+    except (openai.APITimeoutError, httpx.TimeoutException):
+        trip_repo.update(trip_id, {"generation_status": "error"})
+        logger.error("generation pipeline timed out", extra={"trip_id": trip_id}, exc_info=True)
+        raise HTTPException(status_code=504, detail="Checklist generation timed out")
+    except (openai.AuthenticationError, openai.PermissionDeniedError) as e:
         trip_repo.update(trip_id, {"generation_status": "error"})
         logger.error(
-            "generation pipeline failed",
+            "generation pipeline auth error",
+            extra={"trip_id": trip_id, "error": str(e)},
+        )
+        raise HTTPException(status_code=502, detail="LLM service authentication failed")
+    except (openai.RateLimitError, openai.APIConnectionError) as e:
+        trip_repo.update(trip_id, {"generation_status": "error"})
+        logger.error(
+            "generation pipeline upstream error",
             extra={"trip_id": trip_id, "error": str(e)},
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+        raise HTTPException(status_code=502, detail="LLM service unavailable")
+    except RuntimeError as e:
+        trip_repo.update(trip_id, {"generation_status": "error"})
+        logger.error(
+            "generation pipeline LLM failure",
+            extra={"trip_id": trip_id, "error": str(e)},
+            exc_info=True,
+        )
+        raise HTTPException(status_code=502, detail="Checklist generation failed after retries")
+    except Exception as e:
+        trip_repo.update(trip_id, {"generation_status": "error"})
+        logger.exception("generation pipeline unexpected error", extra={"trip_id": trip_id})
+        raise HTTPException(status_code=500, detail="Internal error during generation")
 
 
 async def run_weather_refresh(trip_id: str, trip: dict) -> dict:

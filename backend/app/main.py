@@ -3,9 +3,11 @@ import uuid
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.config import settings
 from app.logging_config import setup_logging
 from app.routers import users, profiles, library, trips, bags, checklist, generation, accommodations, profile_bags, admin, chat
+from app.utils.exceptions import NotFoundError, ForbiddenError
 
 setup_logging()
 
@@ -24,6 +26,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_handler(request: Request, exc: NotFoundError):
+    return JSONResponse(status_code=404, content={"detail": exc.detail})
+
+
+@app.exception_handler(ForbiddenError)
+async def forbidden_handler(request: Request, exc: ForbiddenError):
+    return JSONResponse(status_code=403, content={"detail": exc.detail})
 
 
 @app.middleware("http")
