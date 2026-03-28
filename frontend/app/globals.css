@@ -28,8 +28,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hide webkit scrollbar on elements that use inline scrollbarWidth:none */
-[style*="scrollbar-width"]::-webkit-scrollbar {
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
