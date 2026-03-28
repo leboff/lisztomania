@@ -1,6 +1,7 @@
 import json
 from openai import AsyncOpenAI
 from app.config import settings
+from app.constants import DEFAULT_GENERATION_TEMPERATURE
 from app.schemas.generation import LLMGenerationResponse, LLMChecklistItem, LLMWeatherSuggestionsResponse
 
 
@@ -80,7 +81,7 @@ async def generate_checklist(
                         "type": "json_schema",
                         "json_schema": {"name": "packing_list", "strict": True, "schema": schema},
                     },
-                    temperature=0.7,
+                    temperature=DEFAULT_GENERATION_TEMPERATURE,
                 )
             else:
                 # Fallback for providers that only support json_object mode
@@ -89,7 +90,7 @@ async def generate_checklist(
                     model=effective_model,
                     messages=messages,
                     response_format={"type": "json_object"},
-                    temperature=0.7,
+                    temperature=DEFAULT_GENERATION_TEMPERATURE,
                 )
             raw = response.choices[0].message.content
             data = json.loads(raw)
@@ -174,14 +175,14 @@ async def generate_weather_suggestions(
                         "type": "json_schema",
                         "json_schema": {"name": "weather_suggestions", "strict": True, "schema": schema},
                     },
-                    temperature=0.7,
+                    temperature=DEFAULT_GENERATION_TEMPERATURE,
                 )
             else:
                 response = await client.chat.completions.create(
                     model=effective_model,
                     messages=messages,
                     response_format={"type": "json_object"},
-                    temperature=0.7,
+                    temperature=DEFAULT_GENERATION_TEMPERATURE,
                 )
             raw = response.choices[0].message.content
             data = json.loads(raw)

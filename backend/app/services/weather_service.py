@@ -1,6 +1,7 @@
 import httpx
 from datetime import date, datetime, timezone
 from app.config import settings
+from app.constants import WEATHER_ICON_SUMMARY
 
 
 async def search_locations(query: str) -> list[dict]:
@@ -53,19 +54,7 @@ async def _geocode(destination: str) -> tuple[float, float] | tuple[None, None]:
         return results[0]["latitude"], results[0]["longitude"]
 
 
-_ICON_SUMMARY: dict[str, str] = {
-    "clear-day": "Clear",
-    "clear-night": "Clear",
-    "rain": "Rainy",
-    "snow": "Snow",
-    "sleet": "Sleet",
-    "wind": "Windy",
-    "fog": "Foggy",
-    "cloudy": "Cloudy",
-    "partly-cloudy-day": "Partly cloudy",
-    "partly-cloudy-night": "Partly cloudy",
-    "thunderstorm": "Thunderstorms",
-}
+_ICON_SUMMARY = WEATHER_ICON_SUMMARY
 
 
 async def fetch_weather(

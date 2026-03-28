@@ -1,6 +1,7 @@
 from datetime import date
 from fastapi import HTTPException
 
+from app.constants import HINDSIGHT_ITEM_LIMIT
 from app.repositories.trip_repository import TripRepository
 from app.repositories.profile_repository import ProfileRepository
 from app.repositories.bag_repository import BagRepository
@@ -34,8 +35,8 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
         if past_trips:
             checklist_repo = ChecklistRepository()
             past_trip_ids = [t["id"] for t in past_trips]
-            hindsight_exclusions = checklist_repo.list_unused_names_for_trips(past_trip_ids)[:20]
-            hindsight_inclusions = checklist_repo.list_wished_names_for_trips(past_trip_ids)[:20]
+            hindsight_exclusions = checklist_repo.list_unused_names_for_trips(past_trip_ids)[:HINDSIGHT_ITEM_LIMIT]
+            hindsight_inclusions = checklist_repo.list_wished_names_for_trips(past_trip_ids)[:HINDSIGHT_ITEM_LIMIT]
 
         # Clear weather if refresh requested
         if refresh_weather:

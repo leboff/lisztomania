@@ -1,4 +1,10 @@
 from datetime import date
+from app.constants import (
+    CATEGORIES,
+    COLD_THRESHOLD_F,
+    WARM_THRESHOLD_F,
+    item_count_range,
+)
 
 
 def build_generation_prompt(
@@ -110,8 +116,8 @@ def build_generation_prompt(
     # Library items that always pack or match context
     trip_type = (trip.get("trip_type") or "").lower()
     weather_data = trip.get("weather_data") or {}
-    is_cold = weather_data.get("min_temp_f", 99) < 50
-    is_warm = weather_data.get("max_temp_f", 0) > 75
+    is_cold = weather_data.get("min_temp_f", 99) < COLD_THRESHOLD_F
+    is_warm = weather_data.get("max_temp_f", 0) > WARM_THRESHOLD_F
     is_rain = (weather_data.get("rain_days") or 0) > 0
 
     def item_matches(item: dict) -> bool:
@@ -176,14 +182,14 @@ def build_generation_prompt(
         "## Instructions",
         "Return a JSON object with an 'items' array. Each item must have:",
         "- item_name: concise name (e.g. 'Passport', 'Running shoes')",
-        "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous, Pre-Trip Task]",
+        f"- category: one of [{', '.join(CATEGORIES)}]",
         "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
         f"- suggested_bag_name: one of {bag_names} or null. Follow the Bag Packing Strategy strictly. For 'Pre-Trip Task' items, always use null.",
         f"- assigned_profile_name: one of {profile_names} or null. Personal items (clothing, toiletries, medications, documents) MUST be assigned to a specific person — generate a SEPARATE item for EACH traveler. Use null ONLY for truly shared group items (e.g. sunscreen bottle, first aid kit, deck of cards). Pre-Trip Tasks MAY be assigned to a person if they are person-specific (e.g. 'Charge [Name]'s iPad'). Ensure the assigned_profile_name matches the owner of the suggested_bag_name where applicable.",
         "- quantity: integer or null — the count for ONE person (e.g. 7 socks, 5 underwear for a 7-day trip). Leave null for singular items like passport, charger, hat. Never sum quantities across travelers into one item.",
         "- reasoning: brief explanation (optional, for debugging). For belongings in bags, briefly mention why this bag was chosen (e.g. 'Carry-on owned by Jane').",
         "",
-        f"Generate {20 + 10 * (len(profile_names) - 1)}-{60 + 15 * (len(profile_names) - 1)} packing items appropriate for the trip. Include essentials plus context-specific items.",
+        f"Generate {item_count_range(len(profile_names))[0]}-{item_count_range(len(profile_names))[1]} packing items appropriate for the trip. Include essentials plus context-specific items.",
         "Additionally, generate 3-6 'Pre-Trip Task' items — practical tasks to complete BEFORE the trip (e.g. 'Charge iPads', 'Check in to flight', 'Download movies for offline viewing', 'Check passport validity', 'Book airport parking'). Adjust based on trip type: for international trips include entry/visa requirement checks; for flights include check-in and electronics charging. These must use category 'Pre-Trip Task' and suggested_bag_name null.",
         "Always include all library packing items and task templates listed above.",
         "Return ONLY valid JSON, no markdown fences.",
@@ -196,8 +202,8 @@ def _weather_flags(weather_data: dict | None) -> dict:
     """Compute weather condition flags from structured weather data."""
     wd = weather_data or {}
     return {
-        "is_cold": wd.get("min_temp_f", 99) < 50,
-        "is_warm": wd.get("max_temp_f", 0) > 75,
+        "is_cold": wd.get("min_temp_f", 99) < COLD_THRESHOLD_F,
+        "is_warm": wd.get("max_temp_f", 0) > WARM_THRESHOLD_F,
         "is_rain": (wd.get("rain_days") or 0) > 0,
         "is_snow": (wd.get("snow_days") or 0) > 0,
         "min_temp": wd.get("min_temp_f"),
@@ -251,12 +257,12 @@ def build_weather_suggestion_prompt(
         "",
         "## Previous Weather",
         f"Summary: {old_weather_summary or 'Unknown'}",
-        f"Cold (below 50°F): {old_flags['is_cold']}, Warm (above 75°F): {old_flags['is_warm']}, "
+        f"Cold (below {COLD_THRESHOLD_F}°F): {old_flags['is_cold']}, Warm (above {WARM_THRESHOLD_F}°F): {old_flags['is_warm']}, "
         f"Rain days: {old_flags['rain_days']}, Snow days: {old_flags['snow_days']}",
         "",
         "## Updated Weather",
         f"Summary: {new_weather_summary or 'Unknown'}",
-        f"Cold (below 50°F): {new_flags['is_cold']}, Warm (above 75°F): {new_flags['is_warm']}, "
+        f"Cold (below {COLD_THRESHOLD_F}°F): {new_flags['is_cold']}, Warm (above {WARM_THRESHOLD_F}°F): {new_flags['is_warm']}, "
         f"Rain days: {new_flags['rain_days']}, Snow days: {new_flags['snow_days']}",
     ]
 
@@ -293,7 +299,7 @@ def build_weather_suggestion_prompt(
         "",
         "Return a JSON object with a 'suggestions' array. Each suggestion must have:",
         "- item_name: concise name",
-        "- category: one of [Clothing, Toiletries, Electronics, Documents, Health, Kids, Food & Snacks, Entertainment, Miscellaneous]",
+        f"- category: one of [{', '.join(c for c in CATEGORIES if c != 'Pre-Trip Task')}]",
         "- timing_attribute: one of [pack_in_advance, morning_of, buy_at_destination, other]",
         f"- suggested_bag_name: one of {bag_names} or null",
         f"- assigned_profile_name: one of {profile_names} or null",

@@ -2,13 +2,12 @@ import json
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from app.dependencies import get_current_user, check_trip_access
+from app.constants import MAX_CHAT_HISTORY
 from app.schemas.chat import ChatMessageCreate, ChatMessageResponse
 from app.repositories.chat_repository import ChatRepository
 from app.services.chat_service import fetch_trip_context, build_chat_context, chat_completion
 
 router = APIRouter(prefix="/trips/{trip_id}/chat", tags=["chat"])
-
-MAX_HISTORY = 20
 
 
 @router.get("", response_model=list[ChatMessageResponse])
@@ -39,7 +38,7 @@ async def send_chat_message(
         "content": body.message,
     })
 
-    history_rows = chat_repo.list_by_trip_desc(trip_id, limit=MAX_HISTORY)
+    history_rows = chat_repo.list_by_trip_desc(trip_id, limit=MAX_CHAT_HISTORY)
     messages = [{"role": r["role"], "content": r["content"]} for r in history_rows]
 
     system_prompt = build_chat_context(trip, profiles, bags, checklist_items)

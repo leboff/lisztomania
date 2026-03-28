@@ -1,12 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { Bag, Profile, LibraryItem } from "@/types";
-
-const CATEGORIES = [
-  "Clothing", "Toiletries", "Electronics", "Documents",
-  "Health", "Kids", "Food & Snacks", "Entertainment", "Miscellaneous",
-  "Pre-Trip Task",
-];
+import { CATEGORIES } from "@/lib/constants";
 
 interface Props {
   open: boolean;
