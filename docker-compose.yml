@@ -11,6 +11,8 @@ services:
       - LLM_MODEL
       - PIRATE_WEATHER_API_KEY
       - FRONTEND_URL
+    networks:
+      - dokploy-network
 
   frontend:
     build:
@@ -21,3 +23,12 @@ services:
         - NEXT_PUBLIC_SUPABASE_ANON_KEY
         - NEXT_PUBLIC_API_URL
     restart: unless-stopped
+    environment:
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
