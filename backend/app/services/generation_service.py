@@ -1,6 +1,6 @@
 import logging
 import time
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 import httpx
 import openai
 from fastapi import HTTPException
@@ -20,6 +20,45 @@ from app.services.prompt_builder import (
     weather_materially_changed,
 )
 from app.services.llm_service import generate_checklist, generate_weather_suggestions
+from app.services.weather_service import FORECAST_WINDOW_DAYS
+
+WEATHER_MAX_AGE_HOURS = 24
+
+
+def _weather_is_stale(trip: dict) -> bool:
+    """Decide whether stored weather should be refetched before generation.
+
+    Stored weather goes stale when it predates the source/fetched_at fields
+    (legacy rows carry this week's forecast regardless of trip dates), when a
+    real forecast becomes available for a trip that only had a historical
+    estimate, or when a near-term forecast is more than a day old.
+    """
+    data = trip.get("weather_data") or {}
+    if not data.get("daily_forecasts"):
+        return True
+    if data.get("source") not in ("forecast", "historical_estimate"):
+        return True
+
+    try:
+        start = date.fromisoformat(str(trip["start_date"]))
+    except (KeyError, ValueError):
+        return False
+    days_until_trip = (start - date.today()).days
+    if days_until_trip > FORECAST_WINDOW_DAYS:
+        # Too far out for a real forecast; the historical estimate won't change
+        return False
+
+    if data["source"] != "forecast":
+        return True
+
+    fetched_at = data.get("fetched_at")
+    try:
+        fetched = datetime.fromisoformat(str(fetched_at))
+    except (TypeError, ValueError):
+        return True
+    if fetched.tzinfo is None:
+        fetched = fetched.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - fetched > timedelta(hours=WEATHER_MAX_AGE_HOURS)
 
 
 async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather: bool) -> dict:
@@ -74,8 +113,8 @@ async def run_generation(trip_id: str, user_id: str, trip: dict, refresh_weather
             trip["weather_summary"] = None
             trip["weather_data"] = None
 
-        # Fetch weather if not already stored
-        if not trip.get("weather_summary"):
+        # Fetch weather if not already stored, or if what's stored is stale
+        if not trip.get("weather_summary") or _weather_is_stale(trip):
             weather_start = time.monotonic()
             weather = await fetch_weather(
                 trip["destination"],

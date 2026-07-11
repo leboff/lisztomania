@@ -15,6 +15,7 @@ interface WeatherData {
   min_temp_f?: number;
   max_temp_f?: number;
   conditions?: string[];
+  source?: string;
 }
 
 interface Props {
@@ -40,6 +41,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false, 
 
   const data = weatherData as WeatherData;
   const forecasts = data.daily_forecasts;
+  const isEstimate = data.source === "historical_estimate";
 
   if (!forecasts || forecasts.length === 0) {
     // Legacy fallback: just show the text summary
@@ -60,7 +62,7 @@ export function WeatherForecast({ weatherData, weatherSummary, compact = false, 
         <div className="flex items-center gap-1.5 mb-3">
           <span className="text-base">🌤️</span>
           <p className="text-xs font-semibold text-sky-700 dark:text-sky-400 uppercase tracking-wide flex-1">
-            Weather Forecast
+            {isEstimate ? "Typical Weather (Estimate)" : "Weather Forecast"}
           </p>
           {onRefresh && (
             <button
