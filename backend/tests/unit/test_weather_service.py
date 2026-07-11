@@ -161,6 +161,91 @@ async def test_fetch_weather_computes_temp_range():
     assert data["min_temp_f"] == 72
     assert data["rain_days"] == 2  # precipProbability > 0.3 on days 2 and 3
     assert len(data["daily_forecasts"]) == 3
+    assert data["source"] == "forecast"
+    assert data["fetched_at"]
+
+
+@pytest.mark.asyncio
+async def test_fetch_weather_respects_location_utc_offset():
+    """Daily timestamps are midnight local; a negative UTC offset must not
+    shift days out of the trip window."""
+    from app.services.weather_service import fetch_weather
+    from datetime import timezone, datetime
+
+    start = date(2026, 7, 1)
+    end = date(2026, 7, 2)
+    # Midnight July 1 in UTC-7 == 07:00 July 1 UTC
+    day1_ts = int(datetime(2026, 7, 1, 7, tzinfo=timezone.utc).timestamp())
+    day2_ts = int(datetime(2026, 7, 2, 7, tzinfo=timezone.utc).timestamp())
+
+    forecast_json_resp = _json_response({
+        "offset": -7,
+        "daily": {"data": [
+            {"time": day1_ts, "temperatureHigh": 80, "temperatureLow": 60, "icon": "clear-day", "precipProbability": 0.0},
+            {"time": day2_ts, "temperatureHigh": 82, "temperatureLow": 61, "icon": "clear-day", "precipProbability": 0.0},
+        ]},
+    })
+    mock_client = _make_mock_client(forecast_json_resp)
+
+    with patch("app.services.weather_service.settings") as mock_settings, \
+         patch("app.services.weather_service.httpx.AsyncClient", return_value=mock_client):
+        mock_settings.pirate_weather_api_key = "test-key"
+        result = await fetch_weather("Phoenix", start, end, lat=33.4, lon=-112.1)
+
+    forecasts = result["data"]["daily_forecasts"]
+    assert [d["date"] for d in forecasts] == ["2026-07-01", "2026-07-02"]
+
+
+@pytest.mark.asyncio
+async def test_fetch_weather_far_future_uses_historical_estimate():
+    """A trip beyond the ~8-day forecast window must NOT get this week's
+    forecast; it falls back to historical weather for the trip dates."""
+    from app.services.weather_service import fetch_weather
+    from datetime import timezone, datetime, timedelta
+
+    today = date.today()
+    start = today + timedelta(days=60)
+    end = today + timedelta(days=62)
+
+    # Pirate Weather returns only the next few days — none in the trip window
+    this_week = [
+        {
+            "time": int(datetime(today.year, today.month, today.day, tzinfo=timezone.utc).timestamp()) + i * 86400,
+            "temperatureHigh": 95,
+            "temperatureLow": 80,
+            "icon": "clear-day",
+            "precipProbability": 0.0,
+        }
+        for i in range(8)
+    ]
+    forecast_resp = _json_response({"offset": 0, "daily": {"data": this_week}})
+    archive_resp = _json_response({
+        "daily": {
+            "time": ["2025-09-09", "2025-09-10", "2025-09-11"],
+            "temperature_2m_max": [55.0, 58.0, 52.0],
+            "temperature_2m_min": [40.0, 42.0, 38.0],
+            "precipitation_sum": [0.0, 5.2, 0.1],
+            "weather_code": [0, 61, 3],
+        }
+    })
+    mock_client = _make_mock_client(forecast_resp, archive_resp)
+
+    with patch("app.services.weather_service.settings") as mock_settings, \
+         patch("app.services.weather_service.httpx.AsyncClient", return_value=mock_client):
+        mock_settings.pirate_weather_api_key = "test-key"
+        result = await fetch_weather("Reykjavik", start, end, lat=64.1, lon=-21.9)
+
+    data = result["data"]
+    assert data["source"] == "historical_estimate"
+    assert data["max_temp_f"] == 58
+    assert data["min_temp_f"] == 38
+    assert data["rain_days"] == 1  # only the 5.2mm day counts
+    # Days are labeled with the actual trip dates, not the historical ones
+    assert [d["date"] for d in data["daily_forecasts"]] == [
+        (start + timedelta(days=i)).isoformat() for i in range(3)
+    ]
+    assert data["daily_forecasts"][1]["icon"] == "rain"
+    assert "estimate" in result["summary"].lower()
 
 
 @pytest.mark.asyncio
