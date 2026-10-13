@@ -280,10 +280,6 @@ resources:
                               name: apikey
                               string_match:
                                 exact: ${SERVICE_ROLE_KEY}
-                          - header:
-                              name: apikey
-                              string_match:
-                                exact: ${SERVICE_ROLE_KEY_ASYMMETRIC}
             - name: rest-v1-protected
               match:
                 prefix: /rest/v1/
@@ -459,10 +455,6 @@ resources:
                       name: apikey
                       string_match:
                         exact: ${SERVICE_ROLE_KEY}
-                  - header:
-                      name: apikey
-                      string_match:
-                        exact: ${SERVICE_ROLE_KEY_ASYMMETRIC}
                 apikey:
                   permissions:
                   - url_path:
@@ -489,14 +481,6 @@ resources:
                       name: apikey
                       string_match:
                         exact: ${ANON_KEY}
-                  - header:
-                      name: apikey
-                      string_match:
-                        exact: ${SERVICE_ROLE_KEY_ASYMMETRIC}
-                  - header:
-                      name: apikey
-                      string_match:
-                        exact: ${ANON_KEY_ASYMMETRIC}
         - name: envoy.filters.http.router
           typed_config:
             '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
